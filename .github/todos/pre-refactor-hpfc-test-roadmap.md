@@ -66,9 +66,9 @@ Additional kernel helper coverage:
 - [x] Verify `calc_f()` computes the expected free-energy density for a known small field.
 - [x] Verify `calc_StructureTensor()` returns smoothed tensor components with the expected shapes.
 - [x] Verify `Timestep_stdPFC()` advances `psi` and `t` and preserves the zero mode.
-- [ ] Verify `Timestep_sHPFC()` advances the state and updates the hydrodynamic buffers consistently.
-- [ ] Verify `Timestep_sHPFC_div_vpsi()` uses the divergence-based update path and advances `t`.
-- [ ] Verify `Timestep_sHPFC_psigradmu()` produces the same field-shape updates and increments time.
+- [x] Verify `Timestep_sHPFC()` advances the state and updates the hydrodynamic buffers consistently.
+- [x] Verify `Timestep_sHPFC_div_vpsi()` uses the divergence-based update path and advances `t`.
+- [x] Verify `Timestep_sHPFC_psigradmu()` produces the same field-shape updates and increments time.
 
 ## Regression and Smoke Tests
 
