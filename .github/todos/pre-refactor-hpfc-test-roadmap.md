@@ -37,12 +37,19 @@ Goal: add the smallest useful test suite around the current HPFC codebase before
 
 ## Kernel Tests
 
-- [ ] Verify `gaussian_kernel_fft()` rejects missing width.
-- [ ] Verify `gaussian_kernel_fft()` rejects non-positive width.
-- [ ] Verify `gaussian_kernel_fft()` returns a complex array with the DC mode normalized to 1.
-- [ ] Verify `kernels` derives `d_dx`, `d_dy`, `d2_dlap`, `d4_dlap2`, and `d6_dlap3` from the supplied geometry.
-- [ ] Verify `kernels` computes `lin_mu_kernel`, `lin_f_kernel`, `lin_v_kernel`, `lin_psi_exp`, `nonlin_psi_exp`, `lin_v_exp`, and `nonlin_v_exp` with the expected shapes.
-- [ ] Verify `kernels` keeps the Gaussian kernel mean-preserving after normalization.
+- [x] Verify `gaussian_kernel_fft()` rejects missing width.
+- [x] Verify `gaussian_kernel_fft()` rejects non-positive width.
+- [x] Verify `gaussian_kernel_fft()` returns a complex array with the DC mode normalized to 1.
+- [x] Verify `kernels` derives `d_dx`, `d_dy`, `d2_dlap`, `d4_dlap2`, and `d6_dlap3` from the supplied geometry.
+- [x] Verify `kernels` computes `lin_mu_kernel`, `lin_f_kernel`, `lin_v_kernel`, `lin_psi_exp`, `nonlin_psi_exp`, `lin_v_exp`, and `nonlin_v_exp` with the expected shapes.
+- [x] Verify `kernels` keeps the Gaussian kernel mean-preserving after normalization.
+
+Additional kernel helper coverage:
+- [x] Verify `_to_spacing_tuple` accepts scalars and sequences and rejects wrong-length inputs.
+- [x] Verify `_cell_volume` multiplies spacing values.
+- [x] Verify `_normalize_kernel_hat_mean` raises on zero DC mode.
+- [x] Verify ETD helper `buildNonlinearETD` uses `dt` for zero lin_kernel entries and `(exp(lin*dt)-1)/lin` otherwise.
+- [x] Verify `gaussian_kernel_fft` rejects scalar `k2` inputs.
 
 ## sHPFC Initialization Tests
 
