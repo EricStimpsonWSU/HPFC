@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# VS code
+.vscode/
+
+# Output files
+*.pdf
