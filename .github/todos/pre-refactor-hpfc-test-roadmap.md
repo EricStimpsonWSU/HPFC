@@ -44,6 +44,14 @@ Goal: add the smallest useful test suite around the current HPFC codebase before
 - [x] Verify `kernels` computes `lin_mu_kernel`, `lin_f_kernel`, `lin_v_kernel`, `lin_psi_exp`, `nonlin_psi_exp`, `lin_v_exp`, and `nonlin_v_exp` with the expected shapes.
 - [x] Verify `kernels` keeps the Gaussian kernel mean-preserving after normalization.
 
+Derivative accuracy coverage:
+- [x] Verify `d_dx` matches the analytic derivative of periodic `sin` and `cos` inputs.
+- [x] Verify `d_dy` matches the analytic derivative of periodic `sin` and `cos` inputs.
+- [x] Verify `d2_dlap` matches the analytic Laplacian of periodic `sin` and `cos` inputs.
+- [x] Verify `d4_dlap2` matches the analytic fourth-order Laplacian operator on periodic `sin` and `cos` inputs.
+- [x] Verify `d6_dlap3` matches the analytic sixth-order Laplacian operator on periodic `sin` and `cos` inputs.
+- [x] Verify the same derivative operators remain accurate on a smooth Gaussian input profile.
+
 Additional kernel helper coverage:
 - [x] Verify `_to_spacing_tuple` accepts scalars and sequences and rejects wrong-length inputs.
 - [x] Verify `_cell_volume` multiplies spacing values.
