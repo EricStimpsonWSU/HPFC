@@ -54,7 +54,7 @@ Additional kernel helper coverage:
 ## sHPFC Initialization Tests
 
 - [x] Verify `sHPFC` accepts a simple 2D initial field and initializes every working buffer with the expected shape.
-- [ ] Verify `sHPFC` preserves the initial mean mode in `psi_hat_00`.
+- [x] Verify `sHPFC` preserves the initial mean mode in `psi_hat_00`.
 - [x] Verify `sHPFC` converts geometry and kernel arrays into the active backend namespace.
 - [x] Verify `sHPFC` exposes the documented aliases for field batches such as `psi`, `psi_hat`, `v_x`, and `v_y`.
 - [x] Verify `sHPFC` rejects unsupported geometry or model objects with a clear failure.
