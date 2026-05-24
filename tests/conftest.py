@@ -13,6 +13,7 @@ if str(HPFC_DIR) not in sys.path:
 
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
+import backend
 
 
 @pytest.fixture
@@ -33,6 +34,19 @@ def psi0() -> np.ndarray:
 
 @pytest.fixture
 def numpy_backend():
-    import backend
-
     return backend._resolve_numpy_backend()
+
+
+@pytest.fixture
+def force_numpy_backend(monkeypatch):
+    monkeypatch.setattr(backend, "resolve_backend", backend._resolve_numpy_backend)
+    return backend._resolve_numpy_backend()
+
+
+@pytest.fixture
+def backend_resolution_mocks(monkeypatch):
+    def apply(*, cupy_backend=None, numpy_fftw_backend=None):
+        monkeypatch.setattr(backend, "_resolve_cupy_backend", lambda: cupy_backend)
+        monkeypatch.setattr(backend, "_resolve_numpy_fftw_backend", lambda: numpy_fftw_backend)
+
+    return apply

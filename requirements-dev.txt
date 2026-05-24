@@ -1,1 +1,6 @@
 pytest>=8.0
+numpy>=1.26
+
+# Optional backend coverage targets used by the suite when available.
+# cupy-cuda11x
+# pyfftw

@@ -5,10 +5,10 @@ import pytest
 
 import backend
 from sHPFC import sHPFC
+from tests.helpers import assert_allclose
 
 
-def test_shpfc_initialization_builds_backend_arrays(simple_model, simple_geometry, psi0, monkeypatch):
-    monkeypatch.setattr(backend, "resolve_backend", backend._resolve_numpy_backend)
+def test_shpfc_initialization_builds_backend_arrays(simple_model, simple_geometry, psi0, force_numpy_backend):
 
     sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
 
@@ -18,11 +18,10 @@ def test_shpfc_initialization_builds_backend_arrays(simple_model, simple_geometr
     assert sim.f.shape == psi0.shape
     assert sim.v_x.shape == psi0.shape
     assert sim.v_y.shape == psi0.shape
-    assert sim.psi_hat_00 == pytest.approx(psi0.mean() * psi0.size)
+    assert_allclose(sim.psi_hat_00, psi0.mean() * psi0.size)
 
 
-def test_std_pfc_timestep_advances_state(simple_model, simple_geometry, psi0, monkeypatch):
-    monkeypatch.setattr(backend, "resolve_backend", backend._resolve_numpy_backend)
+def test_std_pfc_timestep_advances_state(simple_model, simple_geometry, psi0, force_numpy_backend):
 
     sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
     initial_t = sim.t
@@ -32,11 +31,10 @@ def test_std_pfc_timestep_advances_state(simple_model, simple_geometry, psi0, mo
 
     assert sim.t == pytest.approx(initial_t + simple_model.dt)
     assert sim.psi.shape == psi0.shape
-    assert sim.psi_hat[0, 0] == pytest.approx(initial_zero_mode)
+    assert_allclose(sim.psi_hat[0, 0], initial_zero_mode)
 
 
-def test_divergence_based_shpfc_timestep_runs(simple_model, simple_geometry, psi0, monkeypatch):
-    monkeypatch.setattr(backend, "resolve_backend", backend._resolve_numpy_backend)
+def test_divergence_based_shpfc_timestep_runs(simple_model, simple_geometry, psi0, force_numpy_backend):
 
     sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
 

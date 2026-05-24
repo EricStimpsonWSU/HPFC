@@ -5,6 +5,7 @@ import pytest
 
 from PFC2D_geometry import geometry_2D, geometry_2D_CPU, geometry_1D, geometry_3D
 from PFC2D_model import model_2D, model_2D_CPU, model_1D, model_3D
+from tests.helpers import assert_allclose
 
 
 def test_model_2d_stores_parameters_as_floats():
@@ -43,16 +44,16 @@ def test_geometry_2d_constructs_expected_grid_and_frequency_space():
 
     assert geometry.dx == pytest.approx(2.0)
     assert geometry.dy == pytest.approx(2.0)
-    np.testing.assert_allclose(geometry.x, [0.0, 2.0, 4.0, 6.0])
-    np.testing.assert_allclose(geometry.y, [0.0, 2.0, 4.0])
+    assert_allclose(geometry.x, [0.0, 2.0, 4.0, 6.0])
+    assert_allclose(geometry.y, [0.0, 2.0, 4.0])
     assert geometry.X.shape == (3, 4)
     assert geometry.Y.shape == (3, 4)
     assert geometry.KX.shape == (3, 4)
     assert geometry.KY.shape == (3, 4)
     assert geometry.k2.shape == (3, 4)
-    np.testing.assert_allclose(geometry.KX[0], 2 * np.pi * np.fft.fftfreq(4, d=geometry.dx))
-    np.testing.assert_allclose(geometry.KY[:, 0], 2 * np.pi * np.fft.fftfreq(3, d=geometry.dy))
-    np.testing.assert_allclose(geometry.k2, geometry.KX**2 + geometry.KY**2)
+    assert_allclose(geometry.KX[0], 2 * np.pi * np.fft.fftfreq(4, d=geometry.dx))
+    assert_allclose(geometry.KY[:, 0], 2 * np.pi * np.fft.fftfreq(3, d=geometry.dy))
+    assert_allclose(geometry.k2, geometry.KX**2 + geometry.KY**2)
 
 
 def test_geometry_2d_cpu_emits_deprecation_warning():

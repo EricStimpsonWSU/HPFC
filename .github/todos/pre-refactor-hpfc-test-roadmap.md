@@ -4,11 +4,11 @@ Goal: add the smallest useful test suite around the current HPFC codebase before
 
 ## Test Infrastructure
 
-- [ ] Add a test runner configuration for `pytest`.
-- [ ] Add a minimal dependency list for tests, including `pytest` and any optional backend packages used in the suite.
-- [ ] Add a shared test fixture layer for reusable 2D model and geometry objects.
-- [ ] Add a backend-mocking strategy so CPU-only environments can still exercise backend selection logic.
-- [ ] Add a small numerical comparison helper for floating-point assertions.
+- [x] Add a test runner configuration for `pytest`.
+- [x] Add a minimal dependency list for tests, including `pytest` and any optional backend packages used in the suite.
+- [x] Add a shared test fixture layer for reusable 2D model and geometry objects.
+- [x] Add a backend-mocking strategy so CPU-only environments can still exercise backend selection logic.
+- [x] Add a small numerical comparison helper for floating-point assertions.
 
 ## Backend Resolution Tests
 
