@@ -61,11 +61,11 @@ Additional kernel helper coverage:
 
 ## sHPFC Behavior Tests
 
-- [ ] Verify `calc_poly_psi()` updates `psi2`, `psi3`, `psi4`, and their Fourier transforms consistently.
-- [ ] Verify `calc_mu()` computes the expected linear and nonlinear contributions for a known small field.
-- [ ] Verify `calc_f()` computes the expected free-energy density for a known small field.
-- [ ] Verify `calc_StructureTensor()` returns smoothed tensor components with the expected shapes.
-- [ ] Verify `Timestep_stdPFC()` advances `psi` and `t` and preserves the zero mode.
+- [x] Verify `calc_poly_psi()` updates `psi2`, `psi3`, `psi4`, and their Fourier transforms consistently.
+- [x] Verify `calc_mu()` computes the expected linear and nonlinear contributions for a known small field.
+- [x] Verify `calc_f()` computes the expected free-energy density for a known small field.
+- [x] Verify `calc_StructureTensor()` returns smoothed tensor components with the expected shapes.
+- [x] Verify `Timestep_stdPFC()` advances `psi` and `t` and preserves the zero mode.
 - [ ] Verify `Timestep_sHPFC()` advances the state and updates the hydrodynamic buffers consistently.
 - [ ] Verify `Timestep_sHPFC_div_vpsi()` uses the divergence-based update path and advances `t`.
 - [ ] Verify `Timestep_sHPFC_psigradmu()` produces the same field-shape updates and increments time.
