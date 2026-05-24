@@ -29,11 +29,11 @@ Goal: add the smallest useful test suite around the current HPFC codebase before
 
 ## Geometry Tests
 
-- [ ] Verify `geometry_2D` computes `dx`, `dy`, `x`, and `y` correctly for a simple grid.
-- [ ] Verify `geometry_2D` builds `X`, `Y`, `KX`, `KY`, and `k2` with the expected shapes.
-- [ ] Verify `geometry_2D` frequency-space arrays are consistent with `numpy.fft.fftfreq`.
-- [ ] Verify `geometry_2D_CPU` issues a deprecation warning and matches `geometry_2D` behavior.
-- [ ] Verify `geometry_1D` and `geometry_3D` raise `NotImplementedError` with clear messages.
+- [x] Verify `geometry_2D` computes `dx`, `dy`, `x`, and `y` correctly for a simple grid.
+- [x] Verify `geometry_2D` builds `X`, `Y`, `KX`, `KY`, and `k2` with the expected shapes.
+- [x] Verify `geometry_2D` frequency-space arrays are consistent with `numpy.fft.fftfreq`.
+- [x] Verify `geometry_2D_CPU` issues a deprecation warning and matches `geometry_2D` behavior.
+- [x] Verify `geometry_1D` and `geometry_3D` raise `NotImplementedError` with clear messages.
 
 ## Kernel Tests
 
