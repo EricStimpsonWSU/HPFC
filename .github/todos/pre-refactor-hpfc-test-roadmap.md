@@ -22,10 +22,10 @@ Goal: add the smallest useful test suite around the current HPFC codebase before
 
 ## Model Tests
 
-- [ ] Verify `model_2D` stores all parameters as floats.
-- [ ] Verify `model_2D_CPU` emits a deprecation warning and still initializes correctly.
-- [ ] Verify `model_1D` raises `NotImplementedError` with the expected message.
-- [ ] Verify `model_3D` raises `NotImplementedError` with the expected message.
+- [x] Verify `model_2D` stores all parameters as floats.
+- [x] Verify `model_2D_CPU` emits a deprecation warning and still initializes correctly.
+- [x] Verify `model_1D` raises `NotImplementedError` with the expected message.
+- [x] Verify `model_3D` raises `NotImplementedError` with the expected message.
 
 ## Geometry Tests
 
