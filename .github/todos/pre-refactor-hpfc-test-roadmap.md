@@ -12,13 +12,13 @@ Goal: add the smallest useful test suite around the current HPFC codebase before
 
 ## Backend Resolution Tests
 
-- [ ] Verify `resolve_backend()` defaults to NumPy when no optional acceleration libraries are available.
-- [ ] Verify `resolve_backend()` prefers CuPy when it is available and `array=auto` is used.
-- [ ] Verify `resolve_backend()` falls back from CuPy to NumPy cleanly when CuPy is unavailable.
-- [ ] Verify `resolve_backend()` selects PyFFTW when requested and available.
-- [ ] Verify invalid backend names raise a clear `ValueError`.
-- [ ] Verify incompatible combinations such as `array=numpy` with `fft=cupy` fail fast.
-- [ ] Verify environment variables `SHPFC_ARRAY_BACKEND` and `SHPFC_FFT_BACKEND` are honored.
+- [x] Verify `resolve_backend()` defaults to NumPy when no optional acceleration libraries are available.
+- [x] Verify `resolve_backend()` prefers CuPy when it is available and `array=auto` is used.
+- [x] Verify `resolve_backend()` falls back from CuPy to NumPy cleanly when CuPy is unavailable.
+- [x] Verify `resolve_backend()` selects PyFFTW when requested and available.
+- [x] Verify invalid backend names raise a clear `ValueError`.
+- [x] Verify incompatible combinations such as `array=numpy` with `fft=cupy` fail fast.
+- [x] Verify environment variables `SHPFC_ARRAY_BACKEND` and `SHPFC_FFT_BACKEND` are honored.
 
 ## Model Tests
 
