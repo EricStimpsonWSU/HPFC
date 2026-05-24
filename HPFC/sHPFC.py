@@ -481,7 +481,7 @@ class sHPFC:
     # calc ∇ . (vψ) in Fourier space
     # v_dot_grad_psi(self.v_x, self.v_y, self.psi_x, self.psi_y, self.v_dot_grad_psi)
       # Kernel equivalent:
-    self.div_v_psi_hat[...] = (
+    self.div_vpsi_hat[...] = (
       self.kernel_d_dx * self._payload_mgr.fftn(self.v_x * self.psi) +
       self.kernel_d_dy * self._payload_mgr.fftn(self.v_y * self.psi)
     )
@@ -492,7 +492,7 @@ class sHPFC:
     #   self.kernel_d2_dlap, self.psi_hat, self.psi3_hat, self.v_dot_grad_psi_hat
     # )
       # Kernel equivalent:
-    self.psi_hat[...] = self.kernel_lin_psi_exp * self.psi_hat + self.kernel_nonlin_psi_exp * (self.model.Gamma * self.kernel_d2_dlap * self.psi3_hat - self.div_v_psi_hat)
+    self.psi_hat[...] = self.kernel_lin_psi_exp * self.psi_hat + self.kernel_nonlin_psi_exp * (self.model.Gamma * self.kernel_d2_dlap * self.psi3_hat - self.div_vpsi_hat)
     self.psi_hat[0,0] = self.psi_hat_00
     
     self.psi[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.psi_hat))
