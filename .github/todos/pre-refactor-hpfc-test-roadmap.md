@@ -80,8 +80,8 @@ Additional kernel helper coverage:
 
 ## Regression and Smoke Tests
 
-- [ ] Add one tiny deterministic integration test for a few `Timestep_stdPFC()` steps on a small grid.
-- [ ] Add one tiny deterministic integration test for a few `Timestep_sHPFC()` steps on a small grid.
+- [x] Add one tiny deterministic integration test for a few `Timestep_stdPFC()` steps on a small grid.
+- [x] Add one tiny deterministic integration test for a few `Timestep_sHPFC()` steps on a small grid.
 - [ ] Add a notebook-equivalent smoke test that mirrors the current "perfect crystal relaxation" setup.
 - [ ] Add a notebook-equivalent smoke test that mirrors the current "dislocation annihilation" setup.
 - [ ] Add a regression test for any bug discovered while preparing the refactor so the bug stays fixed.
