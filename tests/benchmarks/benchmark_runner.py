@@ -78,8 +78,12 @@ def main():
     p.add_argument("--warmup", type=int, default=2)
     p.add_argument("--steps", type=int, default=1)
     p.add_argument("--repeats", type=int, default=5)
+    p.add_argument("--force-numpy", action="store_true", help="Force NumPy arrays/FFTs via env vars before import")
 
     args = p.parse_args()
+    if args.force_numpy:
+        os.environ["SHPFC_ARRAY_BACKEND"] = "numpy"
+        os.environ["SHPFC_FFT_BACKEND"] = "numpy"
     run_benchmark(Path(args.out), args.seed, args.nx, args.ny, args.warmup, args.steps, args.repeats)
 
 
