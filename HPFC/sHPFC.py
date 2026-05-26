@@ -49,6 +49,8 @@ import backend
 from PFC2D_model import model_2D
 from PFC2D_geometry import geometry_2D
 from kernel_rules import KernelRules
+from state import SimulationState
+from steppers import SHPFCTimestepper, StdPFCTimestepper
 
 
 class BackendPayloadManager:
@@ -287,6 +289,11 @@ class sHPFC:
     # sim clock
     self.t = 0.0
 
+    # State/stepper facade for the staged split between ownership and timestep logic.
+    self.state = SimulationState.from_simulation(self)
+    self.std_stepper = StdPFCTimestepper(self.state)
+    self.shpfc_stepper = SHPFCTimestepper(self.state)
+
   def __getitem__(self, key: str):
     return getattr(self, key)
 
@@ -348,217 +355,16 @@ class sHPFC:
     # return structure_tensor
 
   def Timestep_stdPFC(self) -> None:
-    self.psi_hat[...] = self._payload_mgr.fftn(self.psi)
-    self.nonlin_hat[...] = self._payload_mgr.fftn(self.psi**3)
-    self.psi1_hat[...] = (
-      self.kernel_lin_psi_exp * self.psi_hat +
-      self.kernel_d2_dlap * self.kernel_nonlin_psi_exp * self.nonlin_hat
-    )
-    self.psi[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.psi1_hat))
-    self.t += self.model.dt
+    self.std_stepper.step()
 
   def Timestep_sHPFC(self) -> None:
-    # update mu and f in real space
-    self.calc_poly_psi()
-    self.calc_mu(psi_hat_is_current=True)
-    self.calc_f(psi_hat_is_current=True)
-
-    # calc ∇ψ, ∇f
-    self.f_hat[...] = self._payload_mgr.fftn(self.f)
-    # grads(
-    #   self.kernel_d_dx, self.kernel_d_dy, self.psi_hat,
-    #   self.psi_x_hat, self.psi_y_hat
-    # )
-      # Kernel equivalent:
-    self.psi_x_hat[...] = self.kernel_d_dx * self.psi_hat
-    self.psi_y_hat[...] = self.kernel_d_dy * self.psi_hat
-    
-    # grads(
-    #   self.kernel_d_dx, self.kernel_d_dy, self.f_hat,
-    #   self.f_x_hat, self.f_y_hat
-    # )
-      # Kernel equivalent:
-    self.f_x_hat[...] = self.kernel_d_dx * self.f_hat
-    self.f_y_hat[...] = self.kernel_d_dy * self.f_hat
-    
-    self._batch_grad[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self._batch_grad_hat, axes=(-2, -1)))
-      # Converts gradients from Fourier space to real space via inverse FFT
-
-    # calc new force
-    # force(
-    #   self.mu, self.psi_x, self.psi_y, self.f_x, self.f_y,
-    #   self.force_x, self.force_y
-    # )
-      # Kernel equivalent:
-    self.force_x[...] = self.mu * self.psi_x - self.f_x
-    self.force_y[...] = self.mu * self.psi_y - self.f_y
-    
-    self._batch_force_hat[...] = self._payload_mgr.fftn(self._batch_force, axes=(-2, -1))
-      # Converts forces to Fourier space for velocity calculation
-
-    # calc v(t + Δt)
-    # v_hat(
-    #   self.kernel_lin_v_exp, self.kernel_nonlin_v_exp, self.model.rho0, self.kernel_gaussian, self.v_x_hat, self.force_x_hat, self.v_y_hat, self.force_y_hat,
-    #   self.v_x_hat, self.v_y_hat
-    # )
-      # Kernel equivalent:
-    self.v_x_hat[...] = self.kernel_lin_v_exp * self.v_x_hat + 1 / self.model.rho0 * self.kernel_nonlin_v_exp * self.kernel_gaussian * self.force_x_hat
-    self.v_y_hat[...] = self.kernel_lin_v_exp * self.v_y_hat + 1 / self.model.rho0 * self.kernel_nonlin_v_exp * self.kernel_gaussian * self.force_y_hat
-    self._batch_v[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self._batch_v_hat, axes=(-2, -1)))
-
-    # calc v . ∇ψ in real space
-    # v_dot_grad_psi(self.v_x, self.v_y, self.psi_x, self.psi_y, self.v_dot_grad_psi)
-      # Kernel equivalent:
-    self.v_dot_grad_psi[...] = self.v_x * self.psi_x + self.v_y * self.psi_y
-    
-    self.v_dot_grad_psi_hat[...] = self._payload_mgr.fftn(self.v_dot_grad_psi)
-    self.v_dot_grad_psi_hat[0,:] = 0
-    self.v_dot_grad_psi_hat[:,0] = 0
-
-    # calc psi(t + Δt)
-    # psi_hat(
-    #   self.kernel_lin_psi_exp, self.kernel_nonlin_psi_exp, self.model.Gamma,
-    #   self.kernel_d2_dlap, self.psi_hat, self.psi3_hat, self.v_dot_grad_psi_hat
-    # )
-      # Kernel equivalent:
-    self.psi_hat[...] = self.kernel_lin_psi_exp * self.psi_hat + self.kernel_nonlin_psi_exp * (self.model.Gamma * self.kernel_d2_dlap * self.psi3_hat - self.v_dot_grad_psi_hat)
-    self.psi_hat[0,0] = self.psi_hat_00
-    
-    self.psi[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.psi_hat))
-    self.t += self.model.dt
+    self.shpfc_stepper.step()
 
   def Timestep_sHPFC_div_vpsi(self) -> None:
-    # update mu and f in real space
-    self.calc_poly_psi()
-    self.calc_mu(psi_hat_is_current=True)
-    self.calc_f(psi_hat_is_current=True)
-
-    # calc ∇ψ, ∇f
-    self.f_hat[...] = self._payload_mgr.fftn(self.f)
-    # grads(
-    #   self.kernel_d_dx, self.kernel_d_dy, self.psi_hat,
-    #   self.psi_x_hat, self.psi_y_hat
-    # )
-      # Kernel equivalent:
-    self.psi_x_hat[...] = self.kernel_d_dx * self.psi_hat
-    self.psi_y_hat[...] = self.kernel_d_dy * self.psi_hat
-    
-    # grads(
-    #   self.kernel_d_dx, self.kernel_d_dy, self.f_hat,
-    #   self.f_x_hat, self.f_y_hat
-    # )
-      # Kernel equivalent:
-    self.f_x_hat[...] = self.kernel_d_dx * self.f_hat
-    self.f_y_hat[...] = self.kernel_d_dy * self.f_hat
-    
-    self._batch_grad[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self._batch_grad_hat, axes=(-2, -1)))
-      # Converts gradients from Fourier space to real space via inverse FFT
-
-    # calc new force
-    # force(
-    #   self.mu, self.psi_x, self.psi_y, self.f_x, self.f_y,
-    #   self.force_x, self.force_y
-    # )
-      # Kernel equivalent:
-    self.force_x[...] = self.mu * self.psi_x - self.f_x
-    self.force_y[...] = self.mu * self.psi_y - self.f_y
-    
-    self._batch_force_hat[...] = self._payload_mgr.fftn(self._batch_force, axes=(-2, -1))
-      # Converts forces to Fourier space for velocity calculation
-
-    # calc v(t + Δt)
-    # v_hat(
-    #   self.kernel_lin_v_exp, self.kernel_nonlin_v_exp, self.model.rho0, self.kernel_gaussian, self.v_x_hat, self.force_x_hat, self.v_y_hat, self.force_y_hat,
-    #   self.v_x_hat, self.v_y_hat
-    # )
-      # Kernel equivalent:
-    self.v_x_hat[...] = self.kernel_lin_v_exp * self.v_x_hat + 1 / self.model.rho0 * self.kernel_nonlin_v_exp * self.kernel_gaussian * self.force_x_hat
-    self.v_y_hat[...] = self.kernel_lin_v_exp * self.v_y_hat + 1 / self.model.rho0 * self.kernel_nonlin_v_exp * self.kernel_gaussian * self.force_y_hat
-    self._batch_v[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self._batch_v_hat, axes=(-2, -1)))
-
-    # calc ∇ . (vψ) in Fourier space
-    # v_dot_grad_psi(self.v_x, self.v_y, self.psi_x, self.psi_y, self.v_dot_grad_psi)
-      # Kernel equivalent:
-    self.div_vpsi_hat[...] = (
-      self.kernel_d_dx * self._payload_mgr.fftn(self.v_x * self.psi) +
-      self.kernel_d_dy * self._payload_mgr.fftn(self.v_y * self.psi)
-    )
-
-    # calc psi(t + Δt)
-    # psi_hat(
-    #   self.kernel_lin_psi_exp, self.kernel_nonlin_psi_exp, self.model.Gamma,
-    #   self.kernel_d2_dlap, self.psi_hat, self.psi3_hat, self.v_dot_grad_psi_hat
-    # )
-      # Kernel equivalent:
-    self.psi_hat[...] = self.kernel_lin_psi_exp * self.psi_hat + self.kernel_nonlin_psi_exp * (self.model.Gamma * self.kernel_d2_dlap * self.psi3_hat - self.div_vpsi_hat)
-    self.psi_hat[0,0] = self.psi_hat_00
-    
-    self.psi[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.psi_hat))
-    self.t += self.model.dt
+    self.shpfc_stepper.step_div_vpsi()
 
   def Timestep_sHPFC_psigradmu(self) -> None:
-    # update mu and f in real space
-    self.calc_poly_psi()
-    self.calc_mu(psi_hat_is_current=True)
-    self.calc_f(psi_hat_is_current=True)
-
-    # calc ∇ψ
-    # grads(
-    #   self.kernel_d_dx, self.kernel_d_dy, self.psi_hat,
-    #   self.psi_x_hat, self.psi_y_hat
-    # )
-      # Kernel equivalent:
-    self.psi_x_hat[...] = self.kernel_d_dx * self.psi_hat
-    self.psi_y_hat[...] = self.kernel_d_dy * self.psi_hat
-    
-    self._batch_grad_psi[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self._batch_grad_psi_hat, axes=(-2, -1)))
-      # Converts gradients from Fourier space to real space via inverse FFT
-
-    # calc ∇μ
-    self.mu_hat[...] = self._payload_mgr.fftn(self.mu)
-    self.mu_x_hat[...] = self.kernel_d_dx * self.mu_hat
-    self.mu_y_hat[...] = self.kernel_d_dy * self.mu_hat
-        
-    self._batch_grad_mu[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self._batch_grad_mu_hat, axes=(-2, -1)))
-      # Converts gradients from Fourier space to real space via inverse FFT
-
-    # calc new force
-    self.force_x[...] = -self.psi * self.mu_x
-    self.force_y[...] = -self.psi * self.mu_y
-    
-    self._batch_force_hat[...] = self._payload_mgr.fftn(self._batch_force, axes=(-2, -1))
-      # Converts forces to Fourier space for velocity calculation
-
-    # calc v(t + Δt)
-    # v_hat(
-    #   self.kernel_lin_v_exp, self.kernel_nonlin_v_exp, self.model.rho0, self.kernel_gaussian, self.v_x_hat, self.force_x_hat, self.v_y_hat, self.force_y_hat,
-    #   self.v_x_hat, self.v_y_hat
-    # )
-      # Kernel equivalent:
-    self.v_x_hat[...] = self.kernel_lin_v_exp * self.v_x_hat + 1 / self.model.rho0 * self.kernel_nonlin_v_exp * self.kernel_gaussian * self.force_x_hat
-    self.v_y_hat[...] = self.kernel_lin_v_exp * self.v_y_hat + 1 / self.model.rho0 * self.kernel_nonlin_v_exp * self.kernel_gaussian * self.force_y_hat
-    self._batch_v[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self._batch_v_hat, axes=(-2, -1)))
-
-    # calc v . ∇ψ in real space
-    # v_dot_grad_psi(self.v_x, self.v_y, self.psi_x, self.psi_y, self.v_dot_grad_psi)
-      # Kernel equivalent:
-    self.v_dot_grad_psi[...] = self.v_x * self.psi_x + self.v_y * self.psi_y
-    
-    self.v_dot_grad_psi_hat[...] = self._payload_mgr.fftn(self.v_dot_grad_psi)
-    self.v_dot_grad_psi_hat[0,:] = 0
-    self.v_dot_grad_psi_hat[:,0] = 0
-
-    # calc psi(t + Δt)
-    # psi_hat(
-    #   self.kernel_lin_psi_exp, self.kernel_nonlin_psi_exp, self.model.Gamma,
-    #   self.kernel_d2_dlap, self.psi_hat, self.psi3_hat, self.v_dot_grad_psi_hat
-    # )
-      # Kernel equivalent:
-    self.psi_hat[...] = self.kernel_lin_psi_exp * self.psi_hat + self.kernel_nonlin_psi_exp * (self.model.Gamma * self.kernel_d2_dlap * self.psi3_hat - self.v_dot_grad_psi_hat)
-    self.psi_hat[0,0] = self.psi_hat_00
-    
-    self.psi[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.psi_hat))
-    self.t += self.model.dt
+    self.shpfc_stepper.step_psigradmu()
 
 import cupy as cp
 powers = cp.ElementwiseKernel(
