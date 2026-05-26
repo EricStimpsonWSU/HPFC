@@ -3,11 +3,27 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Sequence
 
 import numpy as np
 
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
+
+
+def _to_spacing_tuple(spacing: float | Sequence[float], ndim: int) -> tuple[float, ...]:
+    if np.isscalar(spacing):
+        value = float(spacing)
+        return (value,) * int(ndim)
+    values = tuple(float(value) for value in spacing)
+    if len(values) != int(ndim):
+        raise ValueError(f"Expected {ndim} spacing values")
+    return values
+
+
+def _cell_volume(spacing: float | Sequence[float]) -> float:
+    spacing_tuple = _to_spacing_tuple(spacing, 2)
+    return float(np.prod(np.asarray(spacing_tuple, dtype=np.float64)))
 
 
 def _normalize_kernel_hat_mean(kernel_hat: np.ndarray) -> np.ndarray:
