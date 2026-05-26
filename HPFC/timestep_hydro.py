@@ -10,71 +10,71 @@ class SHPFCTimestepper:
         self.state = state
 
     def _calc_common_hydro_fields(self) -> None:
-        sim = self.state.sim
-        sim.calc_poly_psi()
-        sim.calc_mu(psi_hat_is_current=True)
-        sim.calc_f(psi_hat_is_current=True)
+        state = self.state
+        state.calc_poly_psi()
+        state.calc_mu(psi_hat_is_current=True)
+        state.calc_f(psi_hat_is_current=True)
 
-        sim.f_hat[...] = sim._payload_mgr.fftn(sim.f)
-        sim.psi_x_hat[...] = sim.kernel_d_dx * sim.psi_hat
-        sim.psi_y_hat[...] = sim.kernel_d_dy * sim.psi_hat
-        sim.f_x_hat[...] = sim.kernel_d_dx * sim.f_hat
-        sim.f_y_hat[...] = sim.kernel_d_dy * sim.f_hat
-        sim._batch_grad[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim._batch_grad_hat, axes=(-2, -1)))
-        sim.force_x[...] = sim.mu * sim.psi_x - sim.f_x
-        sim.force_y[...] = sim.mu * sim.psi_y - sim.f_y
-        sim._batch_force_hat[...] = sim._payload_mgr.fftn(sim._batch_force, axes=(-2, -1))
-        sim.v_x_hat[...] = sim.kernel_lin_v_exp * sim.v_x_hat + 1 / sim.model.rho0 * sim.kernel_nonlin_v_exp * sim.kernel_gaussian * sim.force_x_hat
-        sim.v_y_hat[...] = sim.kernel_lin_v_exp * sim.v_y_hat + 1 / sim.model.rho0 * sim.kernel_nonlin_v_exp * sim.kernel_gaussian * sim.force_y_hat
-        sim._batch_v[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim._batch_v_hat, axes=(-2, -1)))
+        state.f_hat[...] = state._payload_mgr.fftn(state.f)
+        state.psi_x_hat[...] = state.kernel_d_dx * state.psi_hat
+        state.psi_y_hat[...] = state.kernel_d_dy * state.psi_hat
+        state.f_x_hat[...] = state.kernel_d_dx * state.f_hat
+        state.f_y_hat[...] = state.kernel_d_dy * state.f_hat
+        state._batch_grad[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state._batch_grad_hat, axes=(-2, -1)))
+        state.force_x[...] = state.mu * state.psi_x - state.f_x
+        state.force_y[...] = state.mu * state.psi_y - state.f_y
+        state._batch_force_hat[...] = state._payload_mgr.fftn(state._batch_force, axes=(-2, -1))
+        state.v_x_hat[...] = state.kernel_lin_v_exp * state.v_x_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_x_hat
+        state.v_y_hat[...] = state.kernel_lin_v_exp * state.v_y_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_y_hat
+        state._batch_v[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state._batch_v_hat, axes=(-2, -1)))
 
     def step(self) -> None:
-        sim = self.state.sim
+        state = self.state
         self._calc_common_hydro_fields()
-        sim.v_dot_grad_psi[...] = sim.v_x * sim.psi_x + sim.v_y * sim.psi_y
-        sim.v_dot_grad_psi_hat[...] = sim._payload_mgr.fftn(sim.v_dot_grad_psi)
-        sim.v_dot_grad_psi_hat[0, :] = 0
-        sim.v_dot_grad_psi_hat[:, 0] = 0
-        sim.psi_hat[...] = sim.kernel_lin_psi_exp * sim.psi_hat + sim.kernel_nonlin_psi_exp * (sim.model.Gamma * sim.kernel_d2_dlap * sim.psi3_hat - sim.v_dot_grad_psi_hat)
-        sim.psi_hat[0, 0] = sim.psi_hat_00
-        sim.psi[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim.psi_hat))
-        sim.t += sim.model.dt
+        state.v_dot_grad_psi[...] = state.v_x * state.psi_x + state.v_y * state.psi_y
+        state.v_dot_grad_psi_hat[...] = state._payload_mgr.fftn(state.v_dot_grad_psi)
+        state.v_dot_grad_psi_hat[0, :] = 0
+        state.v_dot_grad_psi_hat[:, 0] = 0
+        state.psi_hat[...] = state.kernel_lin_psi_exp * state.psi_hat + state.kernel_nonlin_psi_exp * (state.model.Gamma * state.kernel_d2_dlap * state.psi3_hat - state.v_dot_grad_psi_hat)
+        state.psi_hat[0, 0] = state.psi_hat_00
+        state.psi[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.psi_hat))
+        state.t += state.model.dt
 
     def step_div_vpsi(self) -> None:
-        sim = self.state.sim
+        state = self.state
         self._calc_common_hydro_fields()
-        sim.div_vpsi_hat[...] = (
-            sim.kernel_d_dx * sim._payload_mgr.fftn(sim.v_x * sim.psi) +
-            sim.kernel_d_dy * sim._payload_mgr.fftn(sim.v_y * sim.psi)
+        state.div_vpsi_hat[...] = (
+            state.kernel_d_dx * state._payload_mgr.fftn(state.v_x * state.psi) +
+            state.kernel_d_dy * state._payload_mgr.fftn(state.v_y * state.psi)
         )
-        sim.psi_hat[...] = sim.kernel_lin_psi_exp * sim.psi_hat + sim.kernel_nonlin_psi_exp * (sim.model.Gamma * sim.kernel_d2_dlap * sim.psi3_hat - sim.div_vpsi_hat)
-        sim.psi_hat[0, 0] = sim.psi_hat_00
-        sim.psi[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim.psi_hat))
-        sim.t += sim.model.dt
+        state.psi_hat[...] = state.kernel_lin_psi_exp * state.psi_hat + state.kernel_nonlin_psi_exp * (state.model.Gamma * state.kernel_d2_dlap * state.psi3_hat - state.div_vpsi_hat)
+        state.psi_hat[0, 0] = state.psi_hat_00
+        state.psi[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.psi_hat))
+        state.t += state.model.dt
 
     def step_psigradmu(self) -> None:
-        sim = self.state.sim
-        sim.calc_poly_psi()
-        sim.calc_mu(psi_hat_is_current=True)
-        sim.calc_f(psi_hat_is_current=True)
-        sim.psi_x_hat[...] = sim.kernel_d_dx * sim.psi_hat
-        sim.psi_y_hat[...] = sim.kernel_d_dy * sim.psi_hat
-        sim._batch_grad_psi[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim._batch_grad_psi_hat, axes=(-2, -1)))
-        sim.mu_hat[...] = sim._payload_mgr.fftn(sim.mu)
-        sim.mu_x_hat[...] = sim.kernel_d_dx * sim.mu_hat
-        sim.mu_y_hat[...] = sim.kernel_d_dy * sim.mu_hat
-        sim._batch_grad_mu[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim._batch_grad_mu_hat, axes=(-2, -1)))
-        sim.force_x[...] = -sim.psi * sim.mu_x
-        sim.force_y[...] = -sim.psi * sim.mu_y
-        sim._batch_force_hat[...] = sim._payload_mgr.fftn(sim._batch_force, axes=(-2, -1))
-        sim.v_x_hat[...] = sim.kernel_lin_v_exp * sim.v_x_hat + 1 / sim.model.rho0 * sim.kernel_nonlin_v_exp * sim.kernel_gaussian * sim.force_x_hat
-        sim.v_y_hat[...] = sim.kernel_lin_v_exp * sim.v_y_hat + 1 / sim.model.rho0 * sim.kernel_nonlin_v_exp * sim.kernel_gaussian * sim.force_y_hat
-        sim._batch_v[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim._batch_v_hat, axes=(-2, -1)))
-        sim.v_dot_grad_psi[...] = sim.v_x * sim.psi_x + sim.v_y * sim.psi_y
-        sim.v_dot_grad_psi_hat[...] = sim._payload_mgr.fftn(sim.v_dot_grad_psi)
-        sim.v_dot_grad_psi_hat[0, :] = 0
-        sim.v_dot_grad_psi_hat[:, 0] = 0
-        sim.psi_hat[...] = sim.kernel_lin_psi_exp * sim.psi_hat + sim.kernel_nonlin_psi_exp * (sim.model.Gamma * sim.kernel_d2_dlap * sim.psi3_hat - sim.v_dot_grad_psi_hat)
-        sim.psi_hat[0, 0] = sim.psi_hat_00
-        sim.psi[...] = sim._payload_mgr.real(sim._payload_mgr.ifftn(sim.psi_hat))
-        sim.t += sim.model.dt
+        state = self.state
+        state.calc_poly_psi()
+        state.calc_mu(psi_hat_is_current=True)
+        state.calc_f(psi_hat_is_current=True)
+        state.psi_x_hat[...] = state.kernel_d_dx * state.psi_hat
+        state.psi_y_hat[...] = state.kernel_d_dy * state.psi_hat
+        state._batch_grad_psi[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state._batch_grad_psi_hat, axes=(-2, -1)))
+        state.mu_hat[...] = state._payload_mgr.fftn(state.mu)
+        state.mu_x_hat[...] = state.kernel_d_dx * state.mu_hat
+        state.mu_y_hat[...] = state.kernel_d_dy * state.mu_hat
+        state._batch_grad_mu[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state._batch_grad_mu_hat, axes=(-2, -1)))
+        state.force_x[...] = -state.psi * state.mu_x
+        state.force_y[...] = -state.psi * state.mu_y
+        state._batch_force_hat[...] = state._payload_mgr.fftn(state._batch_force, axes=(-2, -1))
+        state.v_x_hat[...] = state.kernel_lin_v_exp * state.v_x_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_x_hat
+        state.v_y_hat[...] = state.kernel_lin_v_exp * state.v_y_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_y_hat
+        state._batch_v[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state._batch_v_hat, axes=(-2, -1)))
+        state.v_dot_grad_psi[...] = state.v_x * state.psi_x + state.v_y * state.psi_y
+        state.v_dot_grad_psi_hat[...] = state._payload_mgr.fftn(state.v_dot_grad_psi)
+        state.v_dot_grad_psi_hat[0, :] = 0
+        state.v_dot_grad_psi_hat[:, 0] = 0
+        state.psi_hat[...] = state.kernel_lin_psi_exp * state.psi_hat + state.kernel_nonlin_psi_exp * (state.model.Gamma * state.kernel_d2_dlap * state.psi3_hat - state.v_dot_grad_psi_hat)
+        state.psi_hat[0, 0] = state.psi_hat_00
+        state.psi[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.psi_hat))
+        state.t += state.model.dt

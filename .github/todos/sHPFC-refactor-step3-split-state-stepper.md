@@ -2,7 +2,7 @@
 
 Purpose: separate buffer ownership from timestep orchestration so steppers can be swapped or unit-tested independently.
 
-Current slice: the stepper layer is now split into a facade plus dedicated standard and hydrodynamic timestep modules. `sHPFC` still owns the arrays for now; the full ownership move into `SimulationState` is deferred to the next slice.
+Current slice: `SimulationState` now owns the arrays, kernel views, and shared helper methods. `sHPFC` remains a thin facade over that state plus the split timestep modules.
 
 Checklist
 - [ ] Add `HPFC/state.py` with `SimulationState` dataclass that owns backend adapter and preallocated arrays (preserve names/shapes).

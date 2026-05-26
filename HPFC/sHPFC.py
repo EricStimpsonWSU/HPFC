@@ -138,6 +138,22 @@ class sHPFC:
     graceful failure messages).
   """
 
+  def __getattr__(self, name: str):
+    state = object.__getattribute__(self, "__dict__").get("state")
+    if state is not None and hasattr(state, name):
+      return getattr(state, name)
+    raise AttributeError(name)
+
+  def __setattr__(self, name: str, value) -> None:
+    if name in {"_payload_mgr", "model", "geometry", "kernels", "state", "std_stepper", "shpfc_stepper"}:
+      object.__setattr__(self, name, value)
+      return
+    state = object.__getattribute__(self, "__dict__").get("state")
+    if state is not None and hasattr(state, name):
+      setattr(state, name, value)
+      return
+    object.__setattr__(self, name, value)
+
   def __init__(
     self,
     psi0: np.ndarray,
@@ -154,143 +170,7 @@ class sHPFC:
 
     # Precompute convolution kernels for the linear parts of the dynamics
     self.kernels = KernelRules(model=self.model, geometry=self.geometry)
-    self.kernel_d_dx = self._payload_mgr.asarray(self.kernels.d_dx)
-    self.kernel_d_dy = self._payload_mgr.asarray(self.kernels.d_dy)
-    self.kernel_d2_dlap = self._payload_mgr.asarray(self.kernels.d2_dlap)
-    self.kernel_lin_v_exp = self._payload_mgr.asarray(self.kernels.lin_v_exp)
-    self.kernel_nonlin_v_exp = self._payload_mgr.asarray(self.kernels.nonlin_v_exp)
-    self.kernel_gaussian = self._payload_mgr.asarray(self.kernels.gaussian_kernel)
-    self.kernel_lin_psi_exp = self._payload_mgr.asarray(self.kernels.lin_psi_exp)
-    self.kernel_nonlin_psi_exp = self._payload_mgr.asarray(self.kernels.nonlin_psi_exp)
-
-    # Convert kernel arrays from NumPy into the backend namespace so that
-    # kernel * backend-array math happens without additional transfers.
-    try:
-      # Common kernel fields used by sHPFC
-      for attr in (
-        "lin_mu_kernel",
-        "lin_f_kernel",
-        "lin_dpsi_exp_kernel",
-        "k2",
-        "nonlin_dpsi_kernel",
-        "gaussian_kernel",
-      ):
-        val = getattr(self.kernels, attr, None)
-        if val is not None:
-          setattr(self.kernels, attr, self._payload_mgr.asarray(val))
-    except Exception:
-      # If conversion fails, fall back and let operations raise later.
-      pass
-
-    # Also convert geometry k-space arrays into backend namespace for
-    # consistent backend math (avoids mixing NumPy/CuPy arrays).
-    try:
-      self.KX = self._payload_mgr.asarray(self.geometry.KX)
-      self.KY = self._payload_mgr.asarray(self.geometry.KY)
-      self.k2 = self._payload_mgr.asarray(self.geometry.k2)
-    except Exception:
-      # best-effort conversion; fall back to geometry attributes
-      self.KX = getattr(self.geometry, 'KX')
-      self.KY = getattr(self.geometry, 'KY')
-      self.k2 = getattr(self.geometry, 'k2')
-
-    # Working fields: allocate in backend namespace
-    shape = psi0.shape
-    self.psi_hat_00 = psi0.mean() * psi0.size
-
-    # Linear part of mu, f in real- and Fourier-space
-    self.lin_mu = self._payload_mgr.zeros(shape, dtype=np.float64)
-    self.lin_f = self._payload_mgr.zeros(shape, dtype=np.float64)
-    self.lin_mu_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-    self.lin_f_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-
-    # Primary fields: chemical potential, free energy density, velocity components
-    self.mu = self._payload_mgr.zeros(shape, dtype=np.float64)
-    self.f = self._payload_mgr.zeros(shape, dtype=np.float64)
-
-    # Fourier-space versions of primary fields
-    self.mu_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-    self.f_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-
-    # Block: powers of psi in real space
-    self._psi_poly = self._payload_mgr.zeros((4, *shape), dtype=np.float64)   # [psi, psi^2, psi^3, psi^4]
-    self.psi = self._psi_poly[0]
-    self.psi[...] = self._payload_mgr.asarray(psi0, dtype=np.float64)
-    self.psi2 = self._psi_poly[1]
-    self.psi3 = self._psi_poly[2]
-    self.psi4 = self._psi_poly[3]
-
-    # Block: powers of psi in Fourier space
-    self._psi_hat_poly = self._payload_mgr.zeros((4, *shape), dtype=np.complex128)  # [psi_hat, psi^2_hat, psi^3_hat, psi^4_hat]
-    self.psi_hat = self._psi_hat_poly[0]
-    self.psi2_hat = self._psi_hat_poly[1]
-    self.psi3_hat = self._psi_hat_poly[2]
-    self.psi4_hat = self._psi_hat_poly[3]
-
-    # Block: velocity components in real space (hydrodynamic path)
-    self._batch_v = self._payload_mgr.zeros((2, *shape), dtype=np.float64)          # [v_x, v_y]
-    self.v_x = self._batch_v[0]
-    self.v_y = self._batch_v[1]
-
-    # Block: velocity components in Fourier space (hydrodynamic path)
-    self._batch_v_hat = self._payload_mgr.zeros((2, *shape), dtype=np.complex128)   # [v_x_hat, v_y_hat]
-    self.v_x_hat = self._batch_v_hat[0]
-    self.v_y_hat = self._batch_v_hat[1]
-
-    # Fields used by the hydrodynamic notebook section (backend arrays)
-    self.div_v = self._payload_mgr.zeros(shape, dtype=np.float64)
-
-    # Fields used to calc ∇ψ, ∇f
-    self._batch_grad = self._payload_mgr.zeros((4, *shape), dtype=np.float64)         # [psi_x, psi_y, f_x, f_y]
-    self.psi_x = self._batch_grad[0]
-    self.psi_y = self._batch_grad[1]
-    self.f_x = self._batch_grad[2]
-    self.f_y = self._batch_grad[3]
-
-    self._batch_grad_hat = self._payload_mgr.zeros((4, *shape), dtype=np.complex128)  # [psi_x_hat, psi_y_hat, f_x_hat, f_y_hat]
-    self.psi_x_hat = self._batch_grad_hat[0]
-    self.psi_y_hat = self._batch_grad_hat[1]
-    self.f_x_hat = self._batch_grad_hat[2]
-    self.f_y_hat = self._batch_grad_hat[3]
-
-    # Fields used to calc ∇ψ in alternate sHPFC_psigradmu path
-    self._batch_grad_psi = self._batch_grad[:2]  # [psi_x, psi_y]
-    self._batch_grad_psi_hat = self._batch_grad_hat[:2]  # [psi_x_hat, psi_y_hat]
-
-    # Fields used to calc ∇μ
-    self._batch_grad_mu = self._payload_mgr.zeros((2, *shape), dtype=np.float64)        # [mu_x, mu_y]
-    self.mu_x = self._batch_grad_mu[0]
-    self.mu_y = self._batch_grad_mu[1]
-
-    self._batch_grad_mu_hat = self._payload_mgr.zeros((2, *shape), dtype=np.complex128)  # [mu_x_hat, mu_y_hat]
-    self.mu_x_hat = self._batch_grad_mu_hat[0]
-    self.mu_y_hat = self._batch_grad_mu_hat[1]
-
-    # Fields used to calc new force (also aliased for use in timestep calcs)
-    self._batch_force = self._payload_mgr.zeros((2, *shape), dtype=np.float64)          # [force_x, force_y]
-    self.force_x = self._batch_force[0]
-    self.force_y = self._batch_force[1]
-
-    self._batch_force_hat = self._payload_mgr.zeros((2, *shape), dtype=np.complex128)   # [force_x_hat, force_y_hat]
-    self.force_x_hat = self._batch_force_hat[0]
-    self.force_y_hat = self._batch_force_hat[1]
-
-    # Fields for v . ∇ψ
-    self.v_dot_grad_psi = self._payload_mgr.zeros(shape, dtype=np.float64)
-    self.v_dot_grad_psi_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-
-    # Fields for ∇ . (vψ)
-    self.div_vpsi_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-
-    # Fields for stdPFC timestep only
-    self.nonlin_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-    self.psi1_hat = self._payload_mgr.zeros(shape, dtype=np.complex128)
-
-    # sim clock
-    self.t = 0.0
-
-    # State/stepper facade for the staged split between ownership and timestep logic.
-    self.state = SimulationState.from_simulation(self)
+    self.state = SimulationState(self._payload_mgr, self.model, self.geometry, self.kernels, psi0)
     self.std_stepper = StdPFCTimestepper(self.state)
     self.shpfc_stepper = SHPFCTimestepper(self.state)
 

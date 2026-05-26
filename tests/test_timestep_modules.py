@@ -8,7 +8,7 @@ def test_split_timestep_modules_import_and_bind(simple_model, simple_geometry, p
     from timestep_std import StdPFCTimestepper
 
     sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
-    state = SimulationState.from_simulation(sim)
+    state = SimulationState(sim._payload_mgr, sim.model, sim.geometry, sim.kernels, psi0)
 
     std_stepper = StdPFCTimestepper(state)
     hydro_stepper = SHPFCTimestepper(state)
