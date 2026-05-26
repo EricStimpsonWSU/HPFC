@@ -43,14 +43,12 @@ Example:
 
 from __future__ import annotations
 
-import warnings
-
 import numpy as np
 
 import backend
-from PFC2D_model import model_2D_CPU
+from PFC2D_model import model_2D
 from PFC2D_geometry import geometry_2D
-from PFC2D_kernels import kernels
+from kernel_rules import KernelRules
 
 
 class BackendPayloadManager:
@@ -142,7 +140,7 @@ class sHPFC:
     self,
     psi0: np.ndarray,
     *,
-    model: model_2D_CPU,
+    model: model_2D,
     geometry: geometry_2D,
   ) -> None:
     # Backend adapter for FFT operations and allocations.
@@ -153,7 +151,7 @@ class sHPFC:
     self.geometry = geometry
 
     # Precompute convolution kernels for the linear parts of the dynamics
-    self.kernels = kernels(model=self.model, geometry=self.geometry)
+    self.kernels = KernelRules(model=self.model, geometry=self.geometry)
     self.kernel_d_dx = self._payload_mgr.asarray(self.kernels.d_dx)
     self.kernel_d_dy = self._payload_mgr.asarray(self.kernels.d_dy)
     self.kernel_d2_dlap = self._payload_mgr.asarray(self.kernels.d2_dlap)
