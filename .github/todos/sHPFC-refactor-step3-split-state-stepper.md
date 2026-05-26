@@ -2,6 +2,8 @@
 
 Purpose: separate buffer ownership from timestep orchestration so steppers can be swapped or unit-tested independently.
 
+Current slice: the stepper layer is now split into a facade plus dedicated standard and hydrodynamic timestep modules. `sHPFC` still owns the arrays for now; the full ownership move into `SimulationState` is deferred to the next slice.
+
 Checklist
 - [ ] Add `HPFC/state.py` with `SimulationState` dataclass that owns backend adapter and preallocated arrays (preserve names/shapes).
 - [ ] Add one stepper file per variant under `HPFC/steppers/` (or an equivalent layout) so each file eventually contains all variant-specific math for that timestep family in one place.
