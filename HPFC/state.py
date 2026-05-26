@@ -10,6 +10,48 @@ import numpy as np
 from fields import ForceBatch, GradBatch, GradMuBatch, PsiBatch, PsiGradBatch, VelBatch
 
 
+class _VelBatchProxy:
+    """Lightweight proxy exposing VelBatch properties while supporting lazy allocation.
+
+    Accessing any attribute triggers the owner's `_ensure_vel_alloc()` which
+    creates the real `VelBatch` stored on the owner as `_real_vel_batch`.
+    """
+
+    def __init__(self, owner: "SimulationState"):
+        self._owner = owner
+
+    @property
+    def v_x(self):
+        self._owner._ensure_vel_alloc()
+        return self._owner._real_vel_batch.v_x
+
+    @property
+    def v_y(self):
+        self._owner._ensure_vel_alloc()
+        return self._owner._real_vel_batch.v_y
+
+    @property
+    def v_x_hat(self):
+        self._owner._ensure_vel_alloc()
+        return self._owner._real_vel_batch.v_x_hat
+
+    @property
+    def v_y_hat(self):
+        self._owner._ensure_vel_alloc()
+        return self._owner._real_vel_batch.v_y_hat
+
+    @property
+    def vel(self):
+        self._owner._ensure_vel_alloc()
+        return self._owner._real_vel_batch.vel
+
+    @property
+    def vel_hat(self):
+        self._owner._ensure_vel_alloc()
+        return self._owner._real_vel_batch.vel_hat
+
+
+
 @dataclass
 class SimulationState:
     """Own the simulation buffers and the helpers that operate on them."""
@@ -66,7 +108,10 @@ class SimulationState:
         self._v_allocated = False
         self._batch_v = None
         self._batch_v_hat = None
-        self.vel_batch = None
+        self._real_vel_batch = None
+        # keep a proxy in place so existing code referencing `state.vel_batch`
+        # continues to work; the proxy will allocate on first use
+        self.vel_batch = _VelBatchProxy(self)
         self._div_v = None
 
         self._batch_grad = self._payload_mgr.zeros((4, *shape), dtype=np.float64)
@@ -123,7 +168,9 @@ class SimulationState:
         shape = self.psi.shape
         self._batch_v = self._payload_mgr.zeros((2, *shape), dtype=np.float64)
         self._batch_v_hat = self._payload_mgr.zeros((2, *shape), dtype=np.complex128)
-        self.vel_batch = VelBatch(self._batch_v, self._batch_v_hat)
+        # store the real VelBatch separately; keep the proxy object on
+        # `self.vel_batch` so code continues to reference it
+        self._real_vel_batch = VelBatch(self._batch_v, self._batch_v_hat)
         self._div_v = self._payload_mgr.zeros(shape, dtype=np.float64)
 
         self._v_dot_grad_psi = self._payload_mgr.zeros(shape, dtype=np.float64)
