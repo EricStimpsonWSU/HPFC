@@ -14,7 +14,7 @@ if str(HPFC_DIR) not in sys.path:
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
 import backend
-from sim_pfc_std import build_model as _sim_pfc_std_build_model
+from HPFC.sim_pfc_std import build_model as _sim_pfc_std_build_model
 
 
 @pytest.fixture

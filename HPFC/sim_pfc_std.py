@@ -7,9 +7,34 @@ import numpy as np
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
 from kernel_rules import KernelRules
+from _simulation_facade import VariantSimulationFacade
 from sHPFC import BackendPayloadManager, sHPFC
 from state import SimulationState
 from PFC2D_model import resolve_model_parameter
+BLOCKED_NAMES = {
+    "Timestep_sHPFC",
+    "Timestep_sHPFC_div_vpsi",
+    "Timestep_sHPFC_psigradmu",
+    "v_x",
+    "v_y",
+    "v_x_hat",
+    "v_y_hat",
+    "div_v",
+    "v_dot_grad_psi",
+    "v_dot_grad_psi_hat",
+    "div_vpsi_hat",
+    "vel_batch",
+    "force_batch",
+    "force_x",
+    "force_y",
+    "force_x_hat",
+    "force_y_hat",
+    "mu_x",
+    "mu_y",
+    "mu_x_hat",
+    "mu_y_hat",
+    "grad_mu_batch",
+}
 import numpy as _np
 
 
@@ -70,5 +95,5 @@ def make_initial_state(
     return SimulationState(payload_mgr, model, geometry, kernels, psi0)
 
 
-def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> sHPFC:
-    return sHPFC(psi0, model=model, geometry=geometry)
+def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> VariantSimulationFacade:
+    return VariantSimulationFacade(sHPFC(psi0, model=model, geometry=geometry), blocked_names=BLOCKED_NAMES)

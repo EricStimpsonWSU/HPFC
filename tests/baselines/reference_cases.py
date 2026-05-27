@@ -16,13 +16,10 @@ for path in (ROOT, HPFC_DIR):
 
 import backend
 from PFC2D_geometry import geometry_2D
-from PFC2D_model import model_2D
-from sHPFC import sHPFC
-# import per-variant sim builders so models are created in their sim modules
-from sim_pfc_std import build_model as _build_std_model
-from sim_shpfc_std import build_model as _build_shpfc_std_model
-from sim_shpfc_div_vpsi import build_model as _build_shpfc_div_model
-from sim_shpfc_psigradmu import build_model as _build_shpfc_psigradmu_model
+from HPFC.sim_pfc_std import build_model as _build_std_model, make_sim as _make_std_sim
+from HPFC.sim_shpfc_std import build_model as _build_shpfc_std_model, make_sim as _make_shpfc_std_sim
+from HPFC.sim_shpfc_div_vpsi import build_model as _build_shpfc_div_model, make_sim as _make_shpfc_div_sim
+from HPFC.sim_shpfc_psigradmu import build_model as _build_shpfc_psigradmu_model, make_sim as _make_shpfc_psigradmu_sim
 
 
 MODEL_KWARGS = {
@@ -62,34 +59,31 @@ def numpy_backend_override():
         backend.resolve_backend = original_resolve_backend
 
 
-def build_simulation() -> sHPFC:
-    # Default to stdPFC if no variant is specified; caller (run_variant)
-    # will pass the desired variant so the correct sim builder is used.
+def build_simulation(variant: str = "stdPFC"):
     with numpy_backend_override():
-        # The simple model_2D is no longer sufficient because KernelRules
-        # expects the model's class to be defined in a sim module that
-        # exports `build_lin_kernels`. Use the per-variant builders.
-        # Default to stdPFC builder.
-        model = _build_std_model(**MODEL_KWARGS)
+        if variant == "stdPFC":
+            model = _build_std_model(**MODEL_KWARGS)
+            make_sim = _make_std_sim
+        elif variant == "sHPFC":
+            model = _build_shpfc_std_model(**MODEL_KWARGS)
+            make_sim = _make_shpfc_std_sim
+        elif variant == "sHPFC_div_vpsi":
+            model = _build_shpfc_div_model(**MODEL_KWARGS)
+            make_sim = _make_shpfc_div_sim
+        elif variant == "sHPFC_psigradmu":
+            model = _build_shpfc_psigradmu_model(**MODEL_KWARGS)
+            make_sim = _make_shpfc_psigradmu_sim
+        else:
+            model = _build_std_model(**MODEL_KWARGS)
+            make_sim = _make_std_sim
         geometry = geometry_2D(**GEOMETRY_KWARGS)
-        return sHPFC(PSI0.copy(), model=model, geometry=geometry)
+        return make_sim(PSI0.copy(), model=model, geometry=geometry)
 
 
 def run_variant(variant: str, steps: int) -> sHPFC:
     # Build a simulation that uses the correct per-variant model builder
     with numpy_backend_override():
-        if variant == "stdPFC":
-            model = _build_std_model(**MODEL_KWARGS)
-        elif variant == "sHPFC":
-            model = _build_shpfc_std_model(**MODEL_KWARGS)
-        elif variant == "sHPFC_div_vpsi":
-            model = _build_shpfc_div_model(**MODEL_KWARGS)
-        elif variant == "sHPFC_psigradmu":
-            model = _build_shpfc_psigradmu_model(**MODEL_KWARGS)
-        else:
-            model = _build_std_model(**MODEL_KWARGS)
-        geometry = geometry_2D(**GEOMETRY_KWARGS)
-        simulation = sHPFC(PSI0.copy(), model=model, geometry=geometry)
+        simulation = build_simulation(variant)
     timestep_method_name = VARIANT_METHODS[variant]
     timestep_method = getattr(simulation, timestep_method_name)
     for _ in range(steps):

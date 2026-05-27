@@ -40,7 +40,7 @@ def test_baseline_files_match_current_behavior(variant: str, steps: int, force_n
     baseline_path = BASELINE_DIR / baseline_filename(variant, steps)
     assert baseline_path.exists(), f"missing baseline file: {baseline_path}"
 
-    simulation = build_simulation()
+    simulation = build_simulation(variant)
     timestep_method = getattr(simulation, VARIANT_METHODS[variant])
     for _ in range(steps):
         timestep_method()

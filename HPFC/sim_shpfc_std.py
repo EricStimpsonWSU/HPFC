@@ -7,9 +7,15 @@ import numpy as np
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
 from kernel_rules import KernelRules
+from _simulation_facade import VariantSimulationFacade
 from sHPFC import BackendPayloadManager, sHPFC
 from state import SimulationState
 from PFC2D_model import resolve_model_parameter
+BLOCKED_NAMES = {
+    "Timestep_stdPFC",
+    "Timestep_sHPFC_div_vpsi",
+    "Timestep_sHPFC_psigradmu",
+}
 
 
 def build_lin_kernels(model: model_2D, geometry: geometry_2D):
@@ -67,5 +73,5 @@ def make_initial_state(
     return SimulationState(payload_mgr, model, geometry, kernels, psi0)
 
 
-def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> sHPFC:
-    return sHPFC(psi0, model=model, geometry=geometry)
+def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> VariantSimulationFacade:
+    return VariantSimulationFacade(sHPFC(psi0, model=model, geometry=geometry), blocked_names=BLOCKED_NAMES)
