@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from state import SimulationState
+from PFC2D_model import resolve_model_parameter
 
 
 class SHPFCTimestepper:
@@ -24,8 +25,9 @@ class SHPFCTimestepper:
         state.force_batch.force_x[...] = state.mu * state.grad_batch.psi_x - state.grad_batch.f_x
         state.force_batch.force_y[...] = state.mu * state.grad_batch.psi_y - state.grad_batch.f_y
         state.force_batch.force_hat[...] = state._payload_mgr.fftn(state.force_batch.force, axes=(-2, -1))
-        state.vel_batch.v_x_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_x_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_x_hat
-        state.vel_batch.v_y_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_y_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_y_hat
+        rho0 = resolve_model_parameter(state.model, "rho0")
+        state.vel_batch.v_x_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_x_hat + 1 / rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_x_hat
+        state.vel_batch.v_y_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_y_hat + 1 / rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_y_hat
         state.vel_batch.vel[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.vel_batch.vel_hat, axes=(-2, -1)))
 
     def step(self) -> None:
@@ -67,8 +69,9 @@ class SHPFCTimestepper:
         state.force_batch.force_x[...] = -state.psi_batch.psi * state.grad_mu_batch.mu_x
         state.force_batch.force_y[...] = -state.psi_batch.psi * state.grad_mu_batch.mu_y
         state.force_batch.force_hat[...] = state._payload_mgr.fftn(state.force_batch.force, axes=(-2, -1))
-        state.vel_batch.v_x_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_x_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_x_hat
-        state.vel_batch.v_y_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_y_hat + 1 / state.model.rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_y_hat
+        rho0 = resolve_model_parameter(state.model, "rho0")
+        state.vel_batch.v_x_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_x_hat + 1 / rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_x_hat
+        state.vel_batch.v_y_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_y_hat + 1 / rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_y_hat
         state.vel_batch.vel[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.vel_batch.vel_hat, axes=(-2, -1)))
         state.v_dot_grad_psi[...] = state.vel_batch.v_x * state.grad_psi_batch.psi_x + state.vel_batch.v_y * state.grad_psi_batch.psi_y
         state.v_dot_grad_psi_hat[...] = state._payload_mgr.fftn(state.v_dot_grad_psi)

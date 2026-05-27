@@ -5,6 +5,25 @@ from __future__ import annotations
 import warnings
 
 
+_MISSING = object()
+
+
+def resolve_model_parameter(model: object, name: str):
+    """Resolve a parameter from either a flat model or a nested hydro config."""
+
+    value = getattr(model, name, _MISSING)
+    if value is not _MISSING:
+        return value
+
+    hydro = getattr(model, "hydro", _MISSING)
+    if hydro is not _MISSING:
+        value = getattr(hydro, name, _MISSING)
+        if value is not _MISSING:
+            return value
+
+    raise AttributeError(f"{type(model).__name__!s} has no attribute {name!r}")
+
+
 class model_2D:
     """Backend-agnostic 2D PFC model parameters.
     

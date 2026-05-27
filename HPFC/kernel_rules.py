@@ -8,7 +8,7 @@ from typing import Sequence
 import numpy as np
 
 from PFC2D_geometry import geometry_2D
-from PFC2D_model import model_2D
+from PFC2D_model import model_2D, resolve_model_parameter
 
 
 def _to_spacing_tuple(spacing: float | Sequence[float], ndim: int) -> tuple[float, ...]:
@@ -98,8 +98,8 @@ class KernelRules:
         temp = self.model.temp
         beta = self.model.beta
         gamma = self.model.Gamma
-        rho0 = self.model.rho0
-        gamma_s = self.model.Gamma_s
+        rho0 = resolve_model_parameter(self.model, "rho0")
+        gamma_s = resolve_model_parameter(self.model, "Gamma_s")
         dt = self.model.dt
 
         self.lin_dpsi = gamma * (
