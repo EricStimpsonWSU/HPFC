@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import builtins
 import importlib
+import sys
 
 import pytest
 
@@ -77,3 +79,39 @@ def test_consumer_assembly_contract_for_canonical_variants(
     for field_name in expected_fields:
         field_value = getattr(sim, field_name)
         assert field_value.shape == contract_psi0.shape
+
+
+@pytest.mark.parametrize("module_path,step_method,expected_fields", VARIANT_SPECS)
+def test_canonical_sim_modules_do_not_import_legacy_sHPFC(
+    module_path: str,
+    step_method: str,
+    expected_fields: tuple[str, ...],
+) -> None:
+    original_module = sys.modules.pop(module_path, None)
+    original_sHPFC = sys.modules.pop("sHPFC", None)
+    original_import = builtins.__import__
+
+    def guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == "sHPFC" or name.startswith("sHPFC."):
+            raise AssertionError("canonical sim modules should not import legacy sHPFC")
+        return original_import(name, globals, locals, fromlist, level)
+
+    builtins.__import__ = guarded_import
+    try:
+        module = importlib.import_module(module_path)
+    finally:
+        builtins.__import__ = original_import
+        if original_module is not None:
+            sys.modules[module_path] = original_module
+        if original_sHPFC is not None:
+            sys.modules["sHPFC"] = original_sHPFC
+        else:
+            sys.modules.pop("sHPFC", None)
+
+    assert module.__name__ == module_path
+
+
+def test_backend_payload_manager_is_importable_from_canonical_payload_module() -> None:
+    from HPFC.payload import BackendPayloadManager
+
+    assert BackendPayloadManager.__name__ == "BackendPayloadManager"
