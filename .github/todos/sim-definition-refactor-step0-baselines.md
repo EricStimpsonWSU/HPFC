@@ -2,7 +2,7 @@
 
 Purpose: lock in deterministic numerical outputs for the current simulation variants so later refactors can prove behavioral equivalence.
 
-Status: in progress.
+Status: complete.
 
 Checklist
 - [x] Confirm the baseline harness under `tests/baselines/` exercises all four current variants on a fixed small geometry: `stdPFC`, `Timestep_sHPFC`, `Timestep_sHPFC_div_vpsi`, and `Timestep_sHPFC_psigradmu`.
@@ -10,7 +10,7 @@ Checklist
 - [x] Confirm `tests/test_baselines_check.py` parametrizes every variant and step count so all four baselines are exercised as the refactor progresses.
 - [x] Ensure the baseline generation path remains deterministic by using the existing fixtures and a small grid / low step-count configuration.
 - [x] Run the narrow baseline check against the committed `.npz` files and verify the baseline tree stays unchanged.
-- [ ] Run the full test suite before step 1 work begins.
+- [x] Run the full test suite before step 1 work begins.
 
 Exit criteria
 - Baseline reference files exist and are committed.

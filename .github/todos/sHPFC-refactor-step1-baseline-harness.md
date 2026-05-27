@@ -2,7 +2,7 @@
 
 Purpose: provide tooling and CI support to (re)generate baseline truth sets and validate them on PRs.
 
-Status: complete (harness and baseline files committed; instructions updated).
+Status: complete (harness, baseline files, and CI workflow committed; instructions updated).
 
 Checklist
 - [x] Add baseline creation/update notes to `.github/instructions/test.instructions.md` so future baseline edits stay consistent.
@@ -12,7 +12,7 @@ Checklist
 - [x] Add a small, maintainers-only ideas note under `.github/future-ideas/` for later CI/infrastructure work.
 
 Notes
-- CI job deferred: GitHub Actions baseline job is intentionally not added yet; see `.github/future-ideas/` for ideas and next steps.
+- CI job added: GitHub Actions now runs the baseline regression slice on changes to `HPFC/`, `tests/`, `tests/baselines/`, and the workflow itself.
 
 Exit criteria
 - Baseline generation is reproducible locally and the repository contains the baseline data plus a regression test (`tests/test_baselines_check.py`) that validates them.
