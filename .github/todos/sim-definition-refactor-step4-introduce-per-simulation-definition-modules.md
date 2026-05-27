@@ -5,7 +5,7 @@ Purpose: make each simulation variant a complete definition file with its own mo
 Status: not-started.
 
 Checklist
-- [ ] Add narrow tests that describe the consumer-facing contract for each simulation module on deterministic small-grid, low-step fixtures.
+- [x] Add narrow tests that describe the consumer-facing contract for each simulation module on deterministic small-grid, low-step fixtures.
 - [ ] Create or update the `HPFC/sim_pfc_std.py`, `HPFC/sim_shpfc_std.py`, `HPFC/sim_shpfc_div_vpsi.py`, and `HPFC/sim_shpfc_psigradmu.py` modules so they are directly importable by consumers.
 - [ ] Move the simulation-specific definitions into those modules: field expectations, linear-kernel selection, chemical potential and free-energy calculations, and timestep orchestration.
 - [ ] Keep the standard PFC algorithm explicitly non-hydrodynamic.
@@ -23,7 +23,7 @@ Notes
 - Do not edit the design/spec documents under `design/` or `.github/specs/` unless explicitly requested.
 
 Next focus
-- Add the narrow consumer-contract tests for Step 4 first, then wire the simulation-specific definitions into the new modules.
+- Wire the simulation-specific definitions into the new modules now that the narrow consumer-contract tests are in place.
 
 Next action
-- Define the minimal Step 4 regression slice in tests so the new per-simulation modules can be implemented against a stable contract.
+- Move the simulation-specific definitions into the dedicated per-simulation modules while preserving the current contract tests.

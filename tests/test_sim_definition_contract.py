@@ -6,15 +6,19 @@ import pytest
 
 
 VARIANT_SPECS = (
-    ("HPFC.sim_pfc_std", "Timestep_stdPFC"),
-    ("HPFC.sim_shpfc_std", "Timestep_sHPFC"),
-    ("HPFC.sim_shpfc_div_vpsi", "Timestep_sHPFC_div_vpsi"),
-    ("HPFC.sim_shpfc_psigradmu", "Timestep_sHPFC_psigradmu"),
+    ("HPFC.sim_pfc_std", "Timestep_stdPFC", ()),
+    ("HPFC.sim_shpfc_std", "Timestep_sHPFC", ("v_x", "v_y")),
+    ("HPFC.sim_shpfc_div_vpsi", "Timestep_sHPFC_div_vpsi", ("v_x", "v_y", "div_vpsi_hat")),
+    ("HPFC.sim_shpfc_psigradmu", "Timestep_sHPFC_psigradmu", ("v_x", "v_y", "v_dot_grad_psi_hat")),
 )
 
 
-@pytest.mark.parametrize("module_path,_", VARIANT_SPECS)
-def test_canonical_sim_module_import_paths(module_path: str, _: str) -> None:
+@pytest.mark.parametrize("module_path,step_method,expected_fields", VARIANT_SPECS)
+def test_canonical_sim_module_import_paths(
+    module_path: str,
+    step_method: str,
+    expected_fields: tuple[str, ...],
+) -> None:
     module = importlib.import_module(module_path)
 
     assert module.__name__ == module_path
@@ -22,12 +26,14 @@ def test_canonical_sim_module_import_paths(module_path: str, _: str) -> None:
     assert hasattr(module, "build_geometry")
     assert hasattr(module, "make_initial_state")
     assert hasattr(module, "make_sim")
+    assert hasattr(module, "build_lin_kernels")
 
 
-@pytest.mark.parametrize("module_path,step_method", VARIANT_SPECS)
+@pytest.mark.parametrize("module_path,step_method,expected_fields", VARIANT_SPECS)
 def test_consumer_assembly_contract_for_canonical_variants(
     module_path: str,
     step_method: str,
+    expected_fields: tuple[str, ...],
     contract_model_kwargs,
     contract_geometry_kwargs,
     contract_psi0,
@@ -43,9 +49,22 @@ def test_consumer_assembly_contract_for_canonical_variants(
     assert state.model is model
     assert state.geometry is geometry
     assert state.psi.shape == contract_psi0.shape
+    assert state.psi_hat.shape == contract_psi0.shape
+    assert state.psi_hat_00 == pytest.approx(contract_psi0.mean() * contract_psi0.size)
 
     assert sim.model is model
     assert sim.geometry is geometry
     assert sim.psi.shape == contract_psi0.shape
     assert hasattr(sim, step_method)
     assert callable(getattr(sim, step_method))
+
+    getattr(sim, step_method)()
+
+    assert sim.t == pytest.approx(contract_model_kwargs["dt"])
+    assert sim.psi.shape == contract_psi0.shape
+    assert sim.psi_hat.shape == contract_psi0.shape
+    assert sim.psi_hat[0, 0] == pytest.approx(sim.psi_hat_00)
+
+    for field_name in expected_fields:
+        field_value = getattr(sim, field_name)
+        assert field_value.shape == contract_psi0.shape
