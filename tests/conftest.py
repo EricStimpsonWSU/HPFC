@@ -33,6 +33,35 @@ def psi0() -> np.ndarray:
 
 
 @pytest.fixture
+def contract_model_kwargs() -> dict[str, float]:
+    return {
+        "temp": -0.25,
+        "beta": 1.5,
+        "Gamma": 1.0,
+        "rho0": 1.0,
+        "Gamma_s": 0.75,
+        "dt": 0.05,
+    }
+
+
+@pytest.fixture
+def contract_geometry_kwargs() -> dict[str, object]:
+    return {
+        "shape": (4, 4),
+        "Lx": 8.0,
+        "Ly": 8.0,
+    }
+
+
+@pytest.fixture
+def contract_psi0() -> np.ndarray:
+    x = np.linspace(0.0, 2.0 * np.pi, 4, endpoint=False)
+    y = np.linspace(0.0, 2.0 * np.pi, 4, endpoint=False)
+    xx, yy = np.meshgrid(x, y)
+    return 0.05 * (np.sin(xx) + np.cos(yy))
+
+
+@pytest.fixture
 def numpy_backend():
     return backend._resolve_numpy_backend()
 
