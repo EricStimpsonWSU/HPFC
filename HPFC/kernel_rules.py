@@ -111,7 +111,48 @@ class KernelRules:
             sim_build = None
 
         if sim_build is None:
-            from sim_kernels import build_lin_kernels as sim_build
+            # If the caller passed a plain model_2D instance (tests and
+            # legacy call sites sometimes construct model_2D directly),
+            # provide a minimal in-file kernel constructor based on the
+            # canonical formulas. This avoids reintroducing a separate
+            # legacy module while preserving behavior for direct model_2D
+            # usages.
+            # Try a generic in-file builder for any object that exposes the
+            # required model parameters (flat attributes or nested `hydro`).
+            from PFC2D_model import resolve_model_parameter
+
+            def _build_from_generic_model(model, geometry):
+                # This will raise AttributeError if required params are missing
+                temp = getattr(model, "temp")
+                beta = getattr(model, "beta")
+                gamma = getattr(model, "Gamma")
+                rho0 = resolve_model_parameter(model, "rho0")
+                gamma_s = resolve_model_parameter(model, "Gamma_s")
+
+                k2 = geometry.k2
+                d2 = -k2
+                d4 = k2 ** 2
+                d6 = k2 ** 3
+
+                lin_dpsi = gamma * ((temp + beta) * d2 + 2 * beta * d4 + beta * (-d6))
+                lin_mu_kernel = (temp + beta) + 2 * beta * d2 + beta * d4
+                lin_f_kernel = 0.5 * beta * (d4 + 2 * d2)
+                lin_v_kernel = (gamma_s / rho0) * d2
+
+                return lin_dpsi, lin_mu_kernel, lin_f_kernel, lin_v_kernel
+
+            try:
+                # Validate by attempting to read required attributes
+                _ = _build_from_generic_model(self.model, self.geometry)
+            except Exception:
+                # Tests expect an AttributeError for incompatible models
+                # (missing required attributes). Raise AttributeError to
+                # preserve that contract.
+                raise AttributeError(
+                    "Model is incompatible: missing required parameters for kernel construction"
+                )
+
+            sim_build = _build_from_generic_model
 
         dt = self.model.dt
         gamma = self.model.Gamma

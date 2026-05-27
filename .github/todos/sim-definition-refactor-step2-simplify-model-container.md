@@ -2,7 +2,7 @@
 
 Purpose: reduce duplication in model assembly by introducing a minimal, shared model container shape that all simulation variants can consume.
 
-Status: in-progress — CI integrated and validated locally.
+Status: complete.
 
 Checklist
 - [x] Add narrow tests that exercise the minimal model container shape and its consumer call sites (use existing small-grid, low-step fixtures).

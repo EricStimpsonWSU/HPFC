@@ -14,11 +14,15 @@ if str(HPFC_DIR) not in sys.path:
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
 import backend
+from sim_pfc_std import build_model as _sim_pfc_std_build_model
 
 
 @pytest.fixture
 def simple_model() -> model_2D:
-    return model_2D(temp=-0.25, beta=1.5, Gamma=1.0, rho0=1.0, Gamma_s=0.75, dt=0.05)
+    # Use the simulation module's model builder so the model's class
+    # is defined in the sim module and KernelRules can locate
+    # `build_lin_kernels` without a legacy fallback.
+    return _sim_pfc_std_build_model(temp=-0.25, beta=1.5, Gamma=1.0, rho0=1.0, Gamma_s=0.75, dt=0.05)
 
 
 @pytest.fixture
