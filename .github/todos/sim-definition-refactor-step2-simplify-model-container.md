@@ -2,13 +2,13 @@
 
 Purpose: reduce duplication in model assembly by introducing a minimal, shared model container shape that all simulation variants can consume.
 
-Status: in-progress.
+Status: in-progress — CI integrated and validated locally.
 
 Checklist
 - [x] Add narrow tests that exercise the minimal model container shape and its consumer call sites (use existing small-grid, low-step fixtures).
 - [x] Update the narrowest set of call sites (model construction, sim assembly) to accept the shared container shape; prefer adapters over wholesale rewrites.
 - [x] Run baseline-checks on the small-grid deterministic cases and update only if behavior-preserving changes require baseline refresh.
-- [ ] Integrate these narrow tests into the baseline/CI harness so regressions are caught early.
+- [x] Integrate these narrow tests into the baseline/CI harness so regressions are caught early.
 
 Exit criteria
 - The simplified container shape is defined and covered by tests demonstrating correct consumption by all variants.
@@ -28,3 +28,8 @@ Next action
 - Keep the new hydro-container contract tests aligned with the canonical sim-definition coverage.
 
 Note: Implemented lightweight adapters in the canonical sim definition modules and added narrow tests exercising the simplified container. Validated with `tests/test_simplified_model_container_sim_shpfc_std.py`, `tests/test_simplified_model_container_sim_shpfc_div_vpsi.py`, `tests/test_simplified_model_container_sim_shpfc_psigradmu.py`, and `tests/test_sim_definition_contract.py`.
+
+Progress update
+
+- **CI integration:** Updated `.github/workflows/ci-baseline-check.yml` to run the baseline regression check plus the simplified-model-container contract tests.
+- **Local validation:** Executed the CI test slice with the workspace venv (`e:/HPC/.venv/Scripts/python.exe`) — all tests passed (24 passed).

@@ -37,4 +37,11 @@ jobs:
           python -m pip install -r requirements-dev.txt
 
       - name: Run baseline regression tests
-        run: python -m pytest tests/test_baselines_check.py
+        run: |
+          python -m pytest tests/test_baselines_check.py
+          python -m pytest \
+            tests/test_sim_definition_contract.py \
+            tests/test_simplified_model_container_sim_pfc_std.py \
+            tests/test_simplified_model_container_sim_shpfc_std.py \
+            tests/test_simplified_model_container_sim_shpfc_div_vpsi.py \
+            tests/test_simplified_model_container_sim_shpfc_psigradmu.py
