@@ -7,7 +7,7 @@ Status: in-progress.
 
 Checklist
 - [x] Add narrow tests that assert the public reusable operators produced by `HPFC/kernel_rules` (derivatives, Gaussian smoothing, wavenumber arrays) on a tiny grid (16x16).
-- [ ] Add tests that capture the current simulation-specific linear kernels for each variant on tiny deterministic configs (32x32, 1–5 steps) and commit minimal `.npz` references under `tests/baselines/data/`.
+- [x] Add tests that capture the current simulation-specific linear kernels for each variant on tiny deterministic configs (32x32, 1–5 steps) and commit minimal `.npz` references under `tests/baselines/data/`.
 - [x] Create `HPFC/sim_*` module placeholders if missing, to own each variant's linear-kernel definition.
 - [ ] Refactor implementation: remove variant-specific kernel constructions from shared modules and import them from the new sim modules, preserving the timestep ETD builder interface.
 - [ ] Run narrow baseline checks and iterate until outputs match prior references within existing tolerances.
@@ -28,14 +28,11 @@ Next focus
 - Add/verify minimal sim-specific baseline `.npz` files for each variant (32x32, steps 1–5) under `tests/baselines/data/`, update narrow regression tests to reference them, and continue splitting variant-specific kernel ownership into per-simulation modules (move kernel definitions from shared modules to `HPFC/sim_*`).
 
 Next action
-- Completed: added `tests/test_kernel_rules_shared_ops.py` and `tests/test_sim_specific_kernels.py`, ran them in the workspace Python venv (7 passed), committed the new tests, created `HPFC/sim_kernels.py`, and refactored `HPFC/kernel_rules.py` to delegate model-specific kernel construction to `HPFC/sim_kernels.build_lin_kernels`.
-- Next: generate minimal baselines and commit them. Suggested local command (workspace venv):
-```powershell
-e:\HPC\.venv\Scripts\python.exe tests/baselines/generate_baselines.py --output-dir tests/baselines/data
-```
-
-	After generating, run the narrow baseline tests and continue moving variant-specific kernel code into per-simulation modules (`HPFC/sim_std.py`, `HPFC/sim_shpfc_*.py`) until the shared `HPFC/kernel_rules.py` contains only reusable operators and ETD helpers.
+- Completed: added `tests/test_kernel_rules_shared_ops.py` and `tests/test_sim_specific_kernels.py`, ran them in the workspace Python venv (7 passed), committed the new tests, created `HPFC/sim_kernels.py`, and refactored `HPFC/kernel_rules.py` to delegate model-specific kernel construction. `KernelRules` now prefers a `build_lin_kernels` exported by the per-simulation module (e.g. `HPFC.sim_pfc_std` / `HPFC.sim_shpfc_*`) and falls back to `HPFC.sim_kernels.build_lin_kernels` for compatibility.
+- Completed: generated the minimal sim-specific baselines in `tests/baselines/data/` and validated them with `tests/test_baselines_check.py` (12 passed).
+- Next: continue moving variant-specific kernel code into per-simulation modules (`HPFC/sim_std.py`, `HPFC/sim_shpfc_*.py`) until the shared `HPFC/kernel_rules.py` contains only reusable operators and ETD helpers.
+ - Update: added `build_lin_kernels` implementations to each `HPFC/sim_*` module so each simulation now owns its kernel formulas; `HPFC/sim_kernels.py` is retained as a fallback for compatibility.
 
 Progress update
-- Added narrow shared-kernel and sim-specific kernel tests, ran them (7 passed), committed the tests, created `HPFC/sim_kernels.py`, and refactored `HPFC/kernel_rules.py` to delegate linear kernel construction. Baselines generation and per-simulation kernel module split remain.
+- Added narrow shared-kernel and sim-specific kernel tests, ran them (7 passed), committed the tests, created `HPFC/sim_kernels.py`, refactored `HPFC/kernel_rules.py` to dynamically resolve `build_lin_kernels` from the simulation module (fallback to `sim_kernels`), generated the minimal baselines, and validated them (12 passed). Per-simulation kernel module split remains; next move detailed kernel formulas into each `HPFC/sim_*` file.
 Files likely touched

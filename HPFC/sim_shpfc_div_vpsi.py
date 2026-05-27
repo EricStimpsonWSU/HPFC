@@ -9,6 +9,27 @@ from PFC2D_model import model_2D
 from kernel_rules import KernelRules
 from sHPFC import BackendPayloadManager, sHPFC
 from state import SimulationState
+from PFC2D_model import resolve_model_parameter
+
+
+def build_lin_kernels(model: model_2D, geometry: geometry_2D):
+    temp = model.temp
+    beta = model.beta
+    gamma = model.Gamma
+    rho0 = resolve_model_parameter(model, "rho0")
+    gamma_s = resolve_model_parameter(model, "Gamma_s")
+
+    k2 = geometry.k2
+    d2 = -k2
+    d4 = k2 ** 2
+    d6 = k2 ** 3
+
+    lin_dpsi = gamma * ((temp + beta) * d2 + 2 * beta * d4 + beta * (-d6))
+    lin_mu_kernel = (temp + beta) + 2 * beta * d2 + beta * d4
+    lin_f_kernel = 0.5 * beta * (d4 + 2 * d2)
+    lin_v_kernel = (gamma_s / rho0) * d2
+
+    return lin_dpsi, lin_mu_kernel, lin_f_kernel, lin_v_kernel
 
 
 def build_model(*, temp: float, beta: float, Gamma: float, rho0: float, Gamma_s: float, dt: float) -> model_2D:

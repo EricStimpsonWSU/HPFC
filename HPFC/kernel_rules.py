@@ -9,6 +9,8 @@ import numpy as np
 
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D, resolve_model_parameter
+import importlib
+from types import ModuleType
 
 
 def _to_spacing_tuple(spacing: float | Sequence[float], ndim: int) -> tuple[float, ...]:
@@ -95,25 +97,27 @@ class KernelRules:
         self.d4_dlap2 = self.k4
         self.d6_dlap3 = -self.k6
 
-        temp = self.model.temp
-        beta = self.model.beta
-        gamma = self.model.Gamma
-        rho0 = resolve_model_parameter(self.model, "rho0")
-        gamma_s = resolve_model_parameter(self.model, "Gamma_s")
-        dt = self.model.dt
+        # Delegate model-specific linear kernel construction to the simulation module
+        # Prefer a `build_lin_kernels(model, geometry)` exported by the sim module
+        # (e.g. HPFC.sim_pfc_std, HPFC.sim_shpfc_*) and fall back to the
+        # legacy `sim_kernels.build_lin_kernels` provider for compatibility.
+        sim_build = None
+        try:
+            sim_mod_name = getattr(self.model.__class__, "__module__", None)
+            if sim_mod_name:
+                sim_mod = importlib.import_module(sim_mod_name)
+                sim_build = getattr(sim_mod, "build_lin_kernels", None)
+        except Exception:
+            sim_build = None
 
-        self.lin_dpsi = gamma * (
-            (temp + beta) * self.d2_dlap +
-            2 * beta * self.d4_dlap2 +
-            beta * self.d6_dlap3
+        if sim_build is None:
+            from sim_kernels import build_lin_kernels as sim_build
+
+        dt = self.model.dt
+        gamma = self.model.Gamma
+        self.lin_dpsi, self.lin_mu_kernel, self.lin_f_kernel, self.lin_v_kernel = sim_build(
+            self.model, self.geometry
         )
-        self.lin_mu_kernel = (
-            (temp + beta) +
-            2 * beta * self.d2_dlap +
-            beta * self.d4_dlap2
-        )
-        self.lin_f_kernel = 0.5 * beta * (self.d4_dlap2 + 2 * self.d2_dlap)
-        self.lin_v_kernel = (gamma_s / rho0) * self.d2_dlap
 
         self.gaussian_kernel = gaussian_kernel_fft(self.k2, width=self.geometry.w)
 
