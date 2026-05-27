@@ -3,7 +3,7 @@
 
 Purpose: keep reusable spectral operators and ETD-building helpers in `HPFC/kernel_rules.py` while moving model-specific linear-kernel definitions into the per-simulation definition modules.
 
-Status: in-progress.
+Status: complete.
 
 Checklist
 - [x] Add narrow tests that assert the public reusable operators produced by `HPFC/kernel_rules` (derivatives, Gaussian smoothing, wavenumber arrays) on a tiny grid (16x16).
@@ -25,15 +25,11 @@ Notes
 - Do not edit design/spec documents under `design/` or `.github/specs/` unless explicitly requested.
 
 Next focus
-- Add/verify minimal sim-specific baseline `.npz` files for each variant (32x32, steps 1–5) under `tests/baselines/data/`, update narrow regression tests to reference them, and continue splitting variant-specific kernel ownership into per-simulation modules (move kernel definitions from shared modules to `HPFC/sim_*`).
+- Move to Step 4: introduce the per-simulation definition modules and keep the simulation-specific ownership boundary local to each `HPFC/sim_*` file.
 
 Next action
-- Completed: added `tests/test_kernel_rules_shared_ops.py` and `tests/test_sim_specific_kernels.py`, ran them in the workspace Python venv (7 passed), committed the new tests, created `HPFC/sim_kernels.py`, and refactored `HPFC/kernel_rules.py` to delegate model-specific kernel construction. `KernelRules` now prefers a `build_lin_kernels` exported by the per-simulation module (e.g. `HPFC.sim_pfc_std` / `HPFC.sim_shpfc_*`) and falls back to `HPFC.sim_kernels.build_lin_kernels` for compatibility.
-- Completed: generated the minimal sim-specific baselines in `tests/baselines/data/` and validated them with `tests/test_baselines_check.py` (12 passed).
-- Next: continue moving variant-specific kernel code into per-simulation modules (`HPFC/sim_std.py`, `HPFC/sim_shpfc_*.py`) until the shared `HPFC/kernel_rules.py` contains only reusable operators and ETD helpers.
- - Update: added `build_lin_kernels` implementations to each `HPFC/sim_*` module so each simulation now owns its kernel formulas; legacy `HPFC/sim_kernels.py` has been removed (no compatibility fallback).
+- Start Step 4 by adding narrow tests that describe the consumer-facing contract for each per-simulation definition module, using the existing deterministic small-grid / low-step configs.
 
 Progress update
-- Removed legacy `HPFC/sim_kernels.py`, refactored `HPFC/kernel_rules.py` to require per-simulation `build_lin_kernels` (removed fallback), updated narrow tests to construct models through their `sim_*` builders, and ran the narrow baseline checks (14 passed).
-Per-simulation kernel module split remains; next move detailed kernel formulas into each `HPFC/sim_*` file and run the full baseline suite.
-Files likely touched
+- Step 3 kernel ownership has been split into the per-simulation modules, and the narrow baseline checks already cover the behavior-preserving kernel changes.
+- The next refactor slice is Step 4, which will make each simulation variant a complete definition module.
