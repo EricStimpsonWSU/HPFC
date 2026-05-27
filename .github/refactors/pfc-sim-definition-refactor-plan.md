@@ -104,8 +104,9 @@ Exit conditions:
 
 Appendix: Suggested file layout
 - `HPFC/sim_pfc_std.py` - standard PFC simulation definition.
-- `HPFC/sim_pfc_hydro_div_vpsi.py` - hydrodynamic variant using `div(v psi)`.
-- `HPFC/sim_pfc_hydro_psigradmu.py` - hydrodynamic variant using `psi grad(mu)`.
+- `HPFC/sim_shpfc_std.py` - standard sHPFC (hydrodynamic) simulation definition using `Timestep_sHPFC`.
+- `HPFC/sim_shpfc_div_vpsi.py` - sHPFC hydrodynamic variant using `div(v psi)`.
+- `HPFC/sim_shpfc_psigradmu.py` - sHPFC hydrodynamic variant using `psi grad(mu)`.
 - `HPFC/PFC2D_model.py` - shared model container.
 - `HPFC/kernel_rules.py` - reusable spectral operators and universal ETD construction.
 - `HPFC/state.py` - shared buffer ownership and array helpers.
