@@ -34,9 +34,3 @@ def test_public_pfc_package_contract(package_name: str, expected_attributes: tup
     assert package.__name__ == package_name
     for attribute_name in expected_attributes:
         assert hasattr(package, attribute_name)
-
-
-def test_hpfc_compatibility_import_path_remains_available() -> None:
-    package = importlib.import_module("HPFC")
-
-    assert package.__name__ == "HPFC"

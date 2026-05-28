@@ -11,8 +11,8 @@ Checklist
 - [x] Move the listed source files into `PFC/stdPFC` (perform after confirmation).
 - [x] Move the listed source files into `PFC/sHPFC` (perform after confirmation).
 - [x] Find and remove any absolute paths in PFC/**/*.* or tests/**/*.* and pass all tests.
-- [ ] Remove all shims and pass all tests.
-- [ ] Verify no design/spec markdown needs editing for this step.
+- [x] Remove all shims and pass all tests.
+- [x] Verify no design/spec markdown needs editing for this step.
 
 What to verify first
 - Which modules are model-specific rather than shared infrastructure.
@@ -31,7 +31,7 @@ Exit criteria
 - Each model family has a clear folder boundary and stable import path.
 
 Next action
-- Produce the explicit file-to-folder mapping (stdPFC vs sHPFC) and post it in this todo for review. After approval, implement the moves in a follow-up step.
+- None - step complete.
 
 Confirmed file mapping (for review)
 
