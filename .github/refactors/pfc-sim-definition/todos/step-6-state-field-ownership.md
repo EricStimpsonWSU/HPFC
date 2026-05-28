@@ -27,7 +27,7 @@ Next action
 - Step 6 is complete; proceed to the Step 7 cleanup and migration-note work when ready.
 
 Notes
-- Treat `.github/refactors/pfc-sim-definition-refactor-plan.md` as the source of truth for the split.
+- Treat `.github/refactors/pfc-sim-definition/plan.md` as the source of truth for the split.
 - Ignore any files matching `sHPFC-refactor*`.
 - Do not edit design/spec documents.
 - Use the existing small-grid, low-step fixtures and the workspace test command for validation.

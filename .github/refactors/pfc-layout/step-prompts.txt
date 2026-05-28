@@ -1,0 +1,221 @@
+Step 0
+Prompt 1
+Goal: lock the import boundary and transition strategy.
+What to do:
+- Read `.github/refactors/pfc-layout/plan.md` and `.github/refactors/pfc-layout/todos/step-0-import-contract.md`.
+- Decide whether `HPFC` remains a temporary compatibility shim or becomes a hard cutover to `PFC`.
+- Write or update the Step 0 todo with the purpose, checklist, exit criteria, and next action.
+Constraints:
+- Treat the plan file as the source of truth.
+- Do not edit design/spec docs unless explicitly asked.
+- Ignore any `sHPFC-refactor*` files.
+- Keep the scope local and minimal.
+- Do not implement code yet.
+Exit criteria:
+- The canonical import surface and transition strategy are explicit.
+
+Prompt 2
+Goal: verify the public import contract before moving code.
+What to do:
+- Add the narrowest contract tests that prove the accepted `PFC/Core`, `PFC/stdPFC`, and `PFC/sHPFC` boundary and any required compatibility path.
+- Keep the tests deterministic and small.
+- Prefer focused contract tests over broad integration tests.
+Constraints:
+- Do not change implementation code unless a tiny fixture adjustment is required.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Update the Step 0 todo only if the test plan materially changes.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- The import contract is covered by a narrow test.
+
+Step 1
+Prompt 1
+Goal: prepare the shared core split.
+What to do:
+- Read `.github/refactors/pfc-layout/plan.md` and `.github/refactors/pfc-layout/todos/step-1-core-split.md`.
+- Identify which modules belong in `PFC/Core` and which modules must stay model-specific.
+- Write or update the Step 1 todo with the purpose, checklist, exit criteria, and next action.
+Constraints:
+- Treat the plan file as the source of truth.
+- Do not edit design/spec docs unless explicitly asked.
+- Ignore any `sHPFC-refactor*` files.
+- Keep the scope local and minimal.
+- Do not implement code yet.
+Exit criteria:
+- The shared-core boundary is explicit and ready for implementation.
+
+Prompt 2
+Goal: verify the shared-core boundary before moving code.
+What to do:
+- Add or update the narrowest tests that pin the shared `PFC/Core` imports and any existing consumer expectations that depend on them.
+- Keep the tests deterministic and small.
+- Prefer contract tests or baseline checks over broad integration tests.
+Constraints:
+- Do not change implementation code unless a tiny fixture adjustment is required.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Update the Step 1 todo only if the test plan materially changes.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- The shared-core contract is covered by a narrow test.
+
+Prompt 3
+Goal: move the shared infrastructure into `PFC/Core`.
+What to do:
+- Make the smallest behavior-preserving edit that moves the reusable backend, FFT, field, payload, state, kernel-rule, geometry, and model primitives into the core boundary.
+- Keep model-specific logic out of shared core.
+- Run the narrow tests first, then the relevant baseline check, then broader validation only if needed.
+- Mark the Step 1 todo complete only when implementation and validation are green.
+Constraints:
+- Keep edits minimal and local.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Preserve deterministic small-grid / low-step behavior.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- Shared infrastructure imports from `PFC/Core` and behavior remains unchanged.
+
+Step 2
+Prompt 1
+Goal: prepare the model-folder split.
+What to do:
+- Read `.github/refactors/pfc-layout/plan.md` and `.github/refactors/pfc-layout/todos/step-2-model-split.md`.
+- Confirm which modules belong in `PFC/stdPFC` and `PFC/sHPFC`.
+- Write or update the Step 2 todo with the purpose, checklist, exit criteria, and next action.
+Constraints:
+- Treat the plan file as the source of truth.
+- Do not edit design/spec docs unless explicitly asked.
+- Ignore any `sHPFC-refactor*` files.
+- Keep the scope local and minimal.
+- Do not implement code yet.
+Exit criteria:
+- The model-specific boundary is explicit and ready for implementation.
+
+Prompt 2
+Goal: verify the model-specific import surface before moving code.
+What to do:
+- Add the narrowest tests that pin the standard and hydrodynamic model entry points under `PFC/stdPFC` and `PFC/sHPFC`.
+- Keep the tests deterministic and small.
+- Prefer focused contract tests over broad integration tests.
+Constraints:
+- Do not change implementation code unless a tiny fixture adjustment is required.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Update the Step 2 todo only if the test plan materially changes.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- The model-folder contract is covered by a narrow test.
+
+Prompt 3
+Goal: move the model-specific implementation into `PFC/stdPFC` and `PFC/sHPFC`.
+What to do:
+- Make the smallest behavior-preserving edit that moves the standard and hydrodynamic variant modules into their model folders.
+- Keep variant-specific timestep orchestration with the matching model folder.
+- Run the narrow tests first, then the relevant baseline check, then broader validation only if needed.
+- Mark the Step 2 todo complete only when implementation and validation are green.
+Constraints:
+- Keep edits minimal and local.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Preserve deterministic small-grid / low-step behavior.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- Each model family has a clear folder boundary and stable import path.
+
+Step 3
+Prompt 1
+Goal: prepare the docs migration.
+What to do:
+- Read `.github/refactors/pfc-layout/plan.md` and `.github/refactors/pfc-layout/todos/step-3-docs-migration.md`.
+- Confirm the exact destination for each model document.
+- Write or update the Step 3 todo with the purpose, checklist, exit criteria, and next action.
+Constraints:
+- Treat the plan file as the source of truth.
+- Do not edit design/spec docs unless explicitly asked.
+- Ignore any `sHPFC-refactor*` files.
+- Keep the scope local and minimal.
+- Do not implement code yet.
+Exit criteria:
+- The documentation boundary is explicit and ready for relocation.
+
+Prompt 2
+Goal: verify the doc move boundaries before changing file locations.
+What to do:
+- Confirm the current model docs and any local references that must follow them.
+- Keep this check narrow and local.
+- Do not widen into unrelated docs or specs.
+Constraints:
+- Do not change implementation code.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Update the Step 3 todo only if the relocation plan materially changes.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest` only if a validation check is needed.
+Exit criteria:
+- The doc-migration target is confirmed.
+
+Prompt 3
+Goal: move the model documentation beside the matching implementation.
+What to do:
+- Make the smallest local change that relocates the model docs into their matching model folders.
+- Update any local references that must follow the move.
+- Preserve the existing wording unless a path update requires it.
+- Run the narrow tests or checks first, then broader validation only if needed.
+- Mark the Step 3 todo complete only when the move and validation are green.
+Constraints:
+- Keep edits minimal.
+- Do not edit design/spec docs beyond the necessary relocation or path updates.
+- Ignore any `sHPFC-refactor*` files.
+- Preserve deterministic small-grid / low-step behavior.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- Model docs sit beside the implementation they describe.
+
+Step 4
+Prompt 1
+Goal: prepare the compatibility cleanup.
+What to do:
+- Read `.github/refactors/pfc-layout/plan.md` and `.github/refactors/pfc-layout/todos/step-4-compat-and-cleanup.md`.
+- Identify any temporary shims that remain and decide whether they are still justified.
+- Write or update the Step 4 todo with the purpose, checklist, exit criteria, and next action.
+Constraints:
+- Treat the plan file as the source of truth.
+- Do not edit design/spec docs unless explicitly asked.
+- Ignore any `sHPFC-refactor*` files.
+- Keep the scope local and minimal.
+- Do not implement code yet.
+Exit criteria:
+- The cleanup boundary is explicit and ready for the final pass.
+
+Prompt 2
+Goal: verify the final import and behavior contract before cleanup.
+What to do:
+- Add or update the narrowest tests that prove the new `PFC` layout is the stable long-term surface.
+- Keep the tests deterministic and small.
+- Prefer contract tests or baseline checks over broad integration tests.
+Constraints:
+- Do not change implementation code unless a tiny fixture adjustment is required.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Update the Step 4 todo only if the verification plan materially changes.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- The final cleanup boundary is covered by a narrow test.
+
+Prompt 3
+Goal: remove temporary migration scaffolding and finish the refactor.
+What to do:
+- Make the smallest behavior-preserving change that removes or narrows any compatibility scaffolding that is no longer needed.
+- Update internal consumers and tests to use the new import paths.
+- Run the narrow tests first, then the relevant baseline check, then broader validation only if needed.
+- Mark the Step 4 todo complete only when implementation and validation are green.
+Constraints:
+- Keep edits minimal and local.
+- Do not edit design/spec docs.
+- Ignore any `sHPFC-refactor*` files.
+- Preserve deterministic small-grid / low-step behavior.
+- Run tests with `e:\HPC\.venv\Scripts\python.exe -m pytest`.
+Exit criteria:
+- The new package layout is stable and the cleanup is complete.
+
+Keep the plan file and the step prompts aligned whenever the refactor scope changes.

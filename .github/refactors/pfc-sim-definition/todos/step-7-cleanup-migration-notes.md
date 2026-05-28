@@ -46,7 +46,7 @@ Next action
 
 Notes
 -----
-- Treat `.github/refactors/pfc-sim-definition-refactor-plan.md` as the source of truth.
+- Treat `.github/refactors/pfc-sim-definition/plan.md` as the source of truth.
 - Do not edit design/spec docs.
 - Ignore any files matching `sHPFC-refactor*`.
 - Keep the change local and minimal; this step is documentation and cleanup, not another structural refactor.
