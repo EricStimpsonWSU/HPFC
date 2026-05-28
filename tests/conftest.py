@@ -1,75 +1,42 @@
 from __future__ import annotations
 
 import importlib
-import sys
-import types
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
-HPFC_DIR = ROOT / "HPFC"
-if str(HPFC_DIR) not in sys.path:
-    sys.path.insert(0, str(HPFC_DIR))
-
-from PFC2D_geometry import geometry_2D
-from PFC2D_model import model_2D
-import backend
-from HPFC.sim_pfc_std import build_model as _sim_pfc_std_build_model
+from PFC.Core import backend
+from PFC.Core.PFC2D_geometry import geometry_2D
+from PFC.Core.PFC2D_model import model_2D
+from PFC.stdPFC.sim_pfc_std import build_model as _sim_pfc_std_build_model
 
 
-def _install_legacy_pfc_namespace() -> None:
-    pfc_package = types.ModuleType("PFC")
-    pfc_package.__path__ = []
+def pytest_addoption(parser) -> None:
+    parser.addoption(
+        "--backend-mode",
+        action="store",
+        default="both",
+        choices=("cpu", "gpu", "both"),
+        help="Select backend coverage mode for backend-sensitive tests.",
+    )
 
-    core_package = types.ModuleType("PFC.Core")
-    core_package.__path__ = []
-    core_package.backend = importlib.import_module("HPFC.backend")
-    core_package.fft_utils = importlib.import_module("HPFC.fft_utils")
-    core_package.fields = importlib.import_module("HPFC.fields")
-    core_package.payload = importlib.import_module("HPFC.payload")
-    core_package.state = importlib.import_module("HPFC.state")
-    core_package.kernel_rules = importlib.import_module("HPFC.kernel_rules")
-    core_package.PFC2D_geometry = importlib.import_module("HPFC.PFC2D_geometry")
-    core_package.PFC2D_model = importlib.import_module("HPFC.PFC2D_model")
-    core_package.geometry_2D = core_package.PFC2D_geometry.geometry_2D
-    core_package.model_2D = core_package.PFC2D_model.model_2D
-    core_package.kernels = importlib.import_module("HPFC.PFC2D_kernels").kernels
-    core_package.gaussian_kernel_fft = core_package.kernel_rules.gaussian_kernel_fft
-    core_package.resolve_model_parameter = core_package.PFC2D_model.resolve_model_parameter
 
-    std_package = types.ModuleType("PFC.stdPFC")
-    std_package.__path__ = []
-    std_package.sim_pfc_std = importlib.import_module("HPFC.sim_pfc_std")
-    std_package.build_model = std_package.sim_pfc_std.build_model
-    std_package.make_sim = std_package.sim_pfc_std.make_sim
-
-    shpfc_package = types.ModuleType("PFC.sHPFC")
-    shpfc_package.__path__ = []
-    shpfc_package.sim_shpfc_std = importlib.import_module("HPFC.sim_shpfc_std")
-    shpfc_package.sim_shpfc_div_vpsi = importlib.import_module("HPFC.sim_shpfc_div_vpsi")
-    shpfc_package.sim_shpfc_psigradmu = importlib.import_module("HPFC.sim_shpfc_psigradmu")
-    shpfc_package.make_sim = shpfc_package.sim_shpfc_std.make_sim
-
-    pfc_package.Core = core_package
-    pfc_package.stdPFC = std_package
-    pfc_package.sHPFC = shpfc_package
-
-    sys.modules["PFC"] = pfc_package
-    sys.modules["PFC.Core"] = core_package
-    sys.modules["PFC.stdPFC"] = std_package
-    sys.modules["PFC.sHPFC"] = shpfc_package
+def _resolve_required_gpu_backend() -> backend.ArrayBackend:
+    gpu_backend = backend._resolve_cupy_backend()
+    if gpu_backend is None:
+        pytest.fail("--backend-mode requires a working CuPy backend, but CuPy is unavailable")
+    try:
+        sample = gpu_backend.array([0.0], dtype=np.float64)
+        gpu_backend.to_numpy(sample)
+    except Exception as exc:  # pragma: no cover - hardware dependent
+        pytest.fail(f"--backend-mode requires a working CuPy backend, but allocation failed: {exc}")
+    return gpu_backend
 
 
 @pytest.fixture
 def pfc_contract_namespace() -> None:
-    try:
-        importlib.import_module("PFC.Core")
-    except ModuleNotFoundError as exc:
-        if exc.name != "PFC":
-            raise
-        _install_legacy_pfc_namespace()
+    importlib.import_module("PFC.Core")
 
 
 @pytest.fixture
@@ -126,9 +93,42 @@ def numpy_backend():
 
 
 @pytest.fixture
-def force_numpy_backend(monkeypatch):
-    monkeypatch.setattr(backend, "resolve_backend", backend._resolve_numpy_backend)
-    return backend._resolve_numpy_backend()
+def backend_mode(pytestconfig) -> str:
+    return pytestconfig.getoption("--backend-mode")
+
+
+@pytest.fixture(params=("cpu", "gpu"))
+def backend_target(request, backend_mode: str) -> str:
+    target = request.param
+    if backend_mode != "both" and target != backend_mode:
+        pytest.skip(f"skipped by --backend-mode={backend_mode}")
+    if target == "gpu":
+        _resolve_required_gpu_backend()
+    return target
+
+
+@pytest.fixture
+def force_cpu_backend(monkeypatch):
+    selected = backend._resolve_numpy_backend()
+    monkeypatch.setattr(backend, "resolve_backend", lambda *args, **kwargs: selected)
+    return selected
+
+
+@pytest.fixture
+def force_gpu_backend(monkeypatch):
+    selected = _resolve_required_gpu_backend()
+    monkeypatch.setattr(backend, "resolve_backend", lambda *args, **kwargs: selected)
+    return selected
+
+
+@pytest.fixture
+def force_numpy_backend(monkeypatch, backend_target: str):
+    if backend_target == "gpu":
+        selected = _resolve_required_gpu_backend()
+    else:
+        selected = backend._resolve_numpy_backend()
+    monkeypatch.setattr(backend, "resolve_backend", lambda *args, **kwargs: selected)
+    return selected
 
 
 @pytest.fixture

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from dataclasses import dataclass
 from pathlib import Path
 import sys
 from typing import Iterable
@@ -9,17 +8,15 @@ from typing import Iterable
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-HPFC_DIR = ROOT / "HPFC"
-for path in (ROOT, HPFC_DIR):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-import backend
-from PFC2D_geometry import geometry_2D
-from HPFC.sim_pfc_std import build_model as _build_std_model, make_sim as _make_std_sim
-from HPFC.sim_shpfc_std import build_model as _build_shpfc_std_model, make_sim as _make_shpfc_std_sim
-from HPFC.sim_shpfc_div_vpsi import build_model as _build_shpfc_div_model, make_sim as _make_shpfc_div_sim
-from HPFC.sim_shpfc_psigradmu import build_model as _build_shpfc_psigradmu_model, make_sim as _make_shpfc_psigradmu_sim
+from PFC.Core import backend
+from PFC.Core.PFC2D_geometry import geometry_2D
+from PFC.stdPFC.sim_pfc_std import build_model as _build_std_model, make_sim as _make_std_sim
+from PFC.sHPFC.sim_shpfc_std import build_model as _build_shpfc_std_model, make_sim as _make_shpfc_std_sim
+from PFC.sHPFC.sim_shpfc_div_vpsi import build_model as _build_shpfc_div_model, make_sim as _make_shpfc_div_sim
+from PFC.sHPFC.sim_shpfc_psigradmu import build_model as _build_shpfc_psigradmu_model, make_sim as _make_shpfc_psigradmu_sim
 
 
 MODEL_KWARGS = {
@@ -50,17 +47,24 @@ STEP_COUNTS = (1, 2, 5)
 
 
 @contextmanager
-def numpy_backend_override():
+def backend_override(mode: str):
+    if mode == "gpu":
+        selected_backend = backend._resolve_cupy_backend()
+        if selected_backend is None:
+            raise RuntimeError("gpu baseline mode requires a working CuPy backend")
+    else:
+        selected_backend = backend._resolve_numpy_backend()
+
     original_resolve_backend = backend.resolve_backend
-    backend.resolve_backend = backend._resolve_numpy_backend
+    backend.resolve_backend = lambda *args, **kwargs: selected_backend
     try:
         yield
     finally:
         backend.resolve_backend = original_resolve_backend
 
 
-def build_simulation(variant: str = "stdPFC"):
-    with numpy_backend_override():
+def build_simulation(variant: str = "stdPFC", *, backend_mode: str = "cpu"):
+    with backend_override(backend_mode):
         if variant == "stdPFC":
             model = _build_std_model(**MODEL_KWARGS)
             make_sim = _make_std_sim
@@ -80,10 +84,8 @@ def build_simulation(variant: str = "stdPFC"):
         return make_sim(PSI0.copy(), model=model, geometry=geometry)
 
 
-def run_variant(variant: str, steps: int) -> sHPFC:
-    # Build a simulation that uses the correct per-variant model builder
-    with numpy_backend_override():
-        simulation = build_simulation(variant)
+def run_variant(variant: str, steps: int, *, backend_mode: str = "cpu") -> sHPFC:
+    simulation = build_simulation(variant, backend_mode=backend_mode)
     timestep_method_name = VARIANT_METHODS[variant]
     timestep_method = getattr(simulation, timestep_method_name)
     for _ in range(steps):
@@ -129,6 +131,26 @@ def snapshot_to_npy_payload(snapshot: dict[str, np.ndarray | float | str | int])
     return payload
 
 
+def assert_snapshots_equivalent(
+    first: dict[str, np.ndarray | float | str | int],
+    second: dict[str, np.ndarray | float | str | int],
+    *,
+    rtol: float = 1e-7,
+    atol: float = 1e-9,
+) -> None:
+    for key, first_value in first.items():
+        if key not in second:
+            raise AssertionError(f"missing key in parity snapshot: {key}")
+        second_value = second[key]
+        if isinstance(first_value, np.ndarray):
+            np.testing.assert_allclose(first_value, second_value, rtol=rtol, atol=atol)
+        elif isinstance(first_value, float):
+            np.testing.assert_allclose(np.array([first_value]), np.array([float(second_value)]), rtol=rtol, atol=atol)
+        else:
+            if first_value != second_value:
+                raise AssertionError(f"snapshot mismatch at key={key}: {first_value!r} != {second_value!r}")
+
+
 def baseline_filename(variant: str, steps: int) -> str:
     return f"{variant}_steps_{steps}.npz"
 
@@ -143,9 +165,12 @@ def generate_baselines(output_dir: Path) -> list[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     written_paths: list[Path] = []
     for variant, steps, path in baseline_paths(output_dir):
-        simulation = run_variant(variant, steps)
-        snapshot = collect_snapshot(simulation, variant, steps)
-        np.savez_compressed(path, **snapshot_to_npy_payload(snapshot))
+        cpu_sim = run_variant(variant, steps, backend_mode="cpu")
+        gpu_sim = run_variant(variant, steps, backend_mode="gpu")
+        cpu_snapshot = collect_snapshot(cpu_sim, variant, steps)
+        gpu_snapshot = collect_snapshot(gpu_sim, variant, steps)
+        assert_snapshots_equivalent(cpu_snapshot, gpu_snapshot)
+        np.savez_compressed(path, **snapshot_to_npy_payload(cpu_snapshot))
         written_paths.append(path)
     return written_paths
 

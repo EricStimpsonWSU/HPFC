@@ -5,7 +5,7 @@ import pytest
 
 
 def test_calc_poly_psi_updates_powers_and_fft(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+    from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
     sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
@@ -22,7 +22,7 @@ def test_calc_poly_psi_updates_powers_and_fft(simple_model, simple_geometry, psi
 
 
 def test_calc_mu_and_calc_f_small_field(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+    from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
     sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
@@ -31,20 +31,20 @@ def test_calc_mu_and_calc_f_small_field(simple_model, simple_geometry, psi0, for
     sim.calc_poly_psi()
 
     sim.calc_mu(psi_hat_is_current=True)
-    lin_mu_hat = sim.kernels.lin_mu_kernel * sim.psi_hat
+    lin_mu_hat = sim.kernel_lin_mu * sim.psi_hat
     lin_mu = sim._payload_mgr.real(sim._payload_mgr.ifftn(lin_mu_hat))
     expected_mu = sim._payload_mgr.to_numpy(lin_mu) + sim._payload_mgr.to_numpy(sim.psi3)
     assert np.allclose(sim._payload_mgr.to_numpy(sim.mu), expected_mu)
 
     sim.calc_f(psi_hat_is_current=True)
-    lin_f_hat = sim.kernels.lin_f_kernel * sim.psi_hat
+    lin_f_hat = sim.kernel_lin_f * sim.psi_hat
     lin_f = sim._payload_mgr.real(sim._payload_mgr.ifftn(lin_f_hat))
     expected_f = sim._payload_mgr.to_numpy(lin_f) * sim._payload_mgr.to_numpy(sim.psi) + 0.5 * (sim.model.beta + sim.model.temp) * sim._payload_mgr.to_numpy(sim.psi2) + 0.25 * sim._payload_mgr.to_numpy(sim.psi4)
     assert np.allclose(sim._payload_mgr.to_numpy(sim.f), expected_f)
 
 
 def test_calc_StructureTensor_returns_smoothed_components(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+    from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
     sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
@@ -59,7 +59,7 @@ def test_calc_StructureTensor_returns_smoothed_components(simple_model, simple_g
 
 
 def test_Timestep_stdPFC_advances_time_and_updates_psi(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from HPFC.sim_pfc_std import make_sim as make_std_sim
+    from PFC.stdPFC.sim_pfc_std import make_sim as make_std_sim
 
     sim = make_std_sim(psi0, model=simple_model, geometry=simple_geometry)
 

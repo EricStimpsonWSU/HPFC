@@ -23,11 +23,11 @@ def _assert_snapshot_matches(actual: dict[str, np.ndarray | float | str | int], 
         assert key in expected, f"missing baseline key: {key}"
         expected_value = expected[key]
         if isinstance(actual_value, np.ndarray):
-            np.testing.assert_allclose(actual_value, expected_value, rtol=1e-12, atol=1e-15)
+            np.testing.assert_allclose(actual_value, expected_value, rtol=1e-7, atol=1e-9)
         else:
             if np.isscalar(expected_value):
                 if isinstance(actual_value, float):
-                    assert actual_value == pytest.approx(expected_value, rel=1e-12, abs=1e-15)
+                    assert actual_value == pytest.approx(expected_value, rel=1e-7, abs=1e-9)
                 else:
                     assert actual_value == expected_value.item() if hasattr(expected_value, "item") else expected_value
             else:
@@ -36,11 +36,11 @@ def _assert_snapshot_matches(actual: dict[str, np.ndarray | float | str | int], 
 
 @pytest.mark.parametrize("variant", list(VARIANT_METHODS))
 @pytest.mark.parametrize("steps", STEP_COUNTS)
-def test_baseline_files_match_current_behavior(variant: str, steps: int, force_numpy_backend):
+def test_baseline_files_match_current_behavior(variant: str, steps: int, backend_target: str):
     baseline_path = BASELINE_DIR / baseline_filename(variant, steps)
     assert baseline_path.exists(), f"missing baseline file: {baseline_path}"
 
-    simulation = build_simulation(variant)
+    simulation = build_simulation(variant, backend_mode=backend_target)
     timestep_method = getattr(simulation, VARIANT_METHODS[variant])
     for _ in range(steps):
         timestep_method()

@@ -15,16 +15,28 @@ import sys
 import numpy as np
 
 
-def build_sim(seed: int, nx: int, ny: int):
-    # insert repo root and HPFC package dir so imports work when run from repo root
-    repo_root = Path(__file__).resolve().parents[2]
-    hpfc_dir = repo_root / "HPFC"
-    sys.path.insert(0, str(repo_root))
-    sys.path.insert(0, str(hpfc_dir))
+def configure_backend_env(backend_mode: str) -> None:
+    if backend_mode == "cpu":
+        os.environ["SHPFC_ARRAY_BACKEND"] = "numpy"
+        os.environ["SHPFC_FFT_BACKEND"] = "numpy"
+        return
+    if backend_mode == "gpu":
+        os.environ["SHPFC_ARRAY_BACKEND"] = "cupy"
+        os.environ["SHPFC_FFT_BACKEND"] = "cupy"
+        return
+    raise ValueError(f"Unsupported backend mode: {backend_mode}")
 
-    from PFC2D_model import model_2D
-    from PFC2D_geometry import geometry_2D
-    from HPFC.sim_pfc_std import make_sim as sHPFC
+
+def build_sim(seed: int, nx: int, ny: int, *, backend_mode: str):
+    configure_backend_env(backend_mode)
+
+    # insert repo root so imports work when run from repo root
+    repo_root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(repo_root))
+
+    from PFC.Core.PFC2D_model import model_2D
+    from PFC.Core.PFC2D_geometry import geometry_2D
+    from PFC.stdPFC.sim_pfc_std import make_sim as sHPFC
 
     rng = np.random.RandomState(seed)
     psi0 = rng.randn(nx, ny) * 0.1
@@ -33,15 +45,14 @@ def build_sim(seed: int, nx: int, ny: int):
     geometry = geometry_2D(shape=(nx, ny), Lx=32.0, Ly=32.0)
 
     sim = sHPFC(psi0, model=model, geometry=geometry)
+    if backend_mode == "gpu" and getattr(sim, "backend_name", None) != "cupy":
+        raise RuntimeError("GPU benchmark requested, but simulation did not resolve to CuPy backend")
+
     return sim
 
 
-def run_benchmark(out_path: Path, seed: int, nx: int, ny: int, warmup: int, steps: int, repeats: int):
-    sim = build_sim(seed, nx, ny)
-
-    # force numpy backend environment for determinism
-    os.environ.setdefault("SHPFC_ARRAY_BACKEND", "numpy")
-    os.environ.setdefault("SHPFC_FFT_BACKEND", "numpy")
+def run_single_benchmark(seed: int, nx: int, ny: int, warmup: int, steps: int, repeats: int, *, backend_mode: str):
+    sim = build_sim(seed, nx, ny, backend_mode=backend_mode)
 
     # warmup
     for _ in range(warmup):
@@ -55,15 +66,29 @@ def run_benchmark(out_path: Path, seed: int, nx: int, ny: int, warmup: int, step
         t1 = time.perf_counter()
         times.append((t1 - t0) / steps)
 
-    data = {
+    return {
         "nx": nx,
         "ny": ny,
         "seed": seed,
+        "backend_mode": backend_mode,
+        "backend_name": getattr(sim, "backend_name", "unknown"),
+        "backend_fft_name": getattr(sim, "backend_fft_name", "unknown"),
+        "backend_summary": getattr(sim, "backend_summary", "unknown"),
         "warmup": warmup,
         "steps": steps,
         "repeats": repeats,
         "times_s": times,
     }
+
+
+def run_benchmark(out_path: Path, seed: int, nx: int, ny: int, warmup: int, steps: int, repeats: int, *, backend_mode: str):
+    if backend_mode == "both":
+        data = {
+            "cpu": run_single_benchmark(seed, nx, ny, warmup, steps, repeats, backend_mode="cpu"),
+            "gpu": run_single_benchmark(seed, nx, ny, warmup, steps, repeats, backend_mode="gpu"),
+        }
+    else:
+        data = run_single_benchmark(seed, nx, ny, warmup, steps, repeats, backend_mode=backend_mode)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(data, indent=2))
@@ -79,13 +104,21 @@ def main():
     p.add_argument("--warmup", type=int, default=2)
     p.add_argument("--steps", type=int, default=1)
     p.add_argument("--repeats", type=int, default=5)
-    p.add_argument("--force-numpy", action="store_true", help="Force NumPy arrays/FFTs via env vars before import")
+    p.add_argument("--backend-mode", choices=("cpu", "gpu", "both"), default="both")
+    p.add_argument("--force-numpy", action="store_true", help="Deprecated alias for --backend-mode=cpu")
 
     args = p.parse_args()
-    if args.force_numpy:
-        os.environ["SHPFC_ARRAY_BACKEND"] = "numpy"
-        os.environ["SHPFC_FFT_BACKEND"] = "numpy"
-    run_benchmark(Path(args.out), args.seed, args.nx, args.ny, args.warmup, args.steps, args.repeats)
+    backend_mode = "cpu" if args.force_numpy else args.backend_mode
+    run_benchmark(
+        Path(args.out),
+        args.seed,
+        args.nx,
+        args.ny,
+        args.warmup,
+        args.steps,
+        args.repeats,
+        backend_mode=backend_mode,
+    )
 
 
 if __name__ == "__main__":

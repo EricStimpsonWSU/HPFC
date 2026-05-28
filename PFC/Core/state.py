@@ -62,6 +62,8 @@ class SimulationState:
 		self.kernel_gaussian = self._payload_mgr.asarray(self.kernels.gaussian_kernel)
 		self.kernel_lin_psi_exp = self._payload_mgr.asarray(self.kernels.lin_psi_exp)
 		self.kernel_nonlin_psi_exp = self._payload_mgr.asarray(self.kernels.nonlin_psi_exp)
+		self.kernel_lin_mu = self._payload_mgr.asarray(self.kernels.lin_mu_kernel)
+		self.kernel_lin_f = self._payload_mgr.asarray(self.kernels.lin_f_kernel)
 		self.KX = self._payload_mgr.asarray(self.geometry.KX)
 		self.KY = self._payload_mgr.asarray(self.geometry.KY)
 		self.k2 = self._payload_mgr.asarray(self.geometry.k2)
@@ -188,14 +190,14 @@ class SimulationState:
 	def calc_mu(self, *, psi_hat_is_current: bool = False) -> None:
 		if not psi_hat_is_current:
 			self.calc_poly_psi()
-		self.lin_mu_hat[...] = self.kernels.lin_mu_kernel * self.psi_batch.psi_hat
+		self.lin_mu_hat[...] = self.kernel_lin_mu * self.psi_batch.psi_hat
 		self.lin_mu[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.lin_mu_hat))
 		self.mu[...] = self.lin_mu + self.psi3
 
 	def calc_f(self, *, psi_hat_is_current: bool = False) -> None:
 		if not psi_hat_is_current:
 			self.calc_poly_psi()
-		self.lin_f_hat[...] = self.kernels.lin_f_kernel * self.psi_batch.psi_hat
+		self.lin_f_hat[...] = self.kernel_lin_f * self.psi_batch.psi_hat
 		self.lin_f[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.lin_f_hat))
 		self.f[...] = self.lin_f * self.psi + 0.5 * (self.model.beta + self.model.temp) * self.psi2 + 0.25 * self.psi4
 
@@ -207,6 +209,6 @@ class SimulationState:
 		S_xx = self.psi_x**2
 		S_yy = self.psi_y**2
 		S_xy = self.psi_x * self.psi_y
-		self.S_xx = self._payload_mgr.real(self._payload_mgr.ifftn(self._payload_mgr.fftn(S_xx) * self.kernels.gaussian_kernel))
-		self.S_yy = self._payload_mgr.real(self._payload_mgr.ifftn(self._payload_mgr.fftn(S_yy) * self.kernels.gaussian_kernel))
-		self.S_xy = self._payload_mgr.real(self._payload_mgr.ifftn(self._payload_mgr.fftn(S_xy) * self.kernels.gaussian_kernel))
+		self.S_xx = self._payload_mgr.real(self._payload_mgr.ifftn(self._payload_mgr.fftn(S_xx) * self.kernel_gaussian))
+		self.S_yy = self._payload_mgr.real(self._payload_mgr.ifftn(self._payload_mgr.fftn(S_yy) * self.kernel_gaussian))
+		self.S_xy = self._payload_mgr.real(self._payload_mgr.ifftn(self._payload_mgr.fftn(S_xy) * self.kernel_gaussian))

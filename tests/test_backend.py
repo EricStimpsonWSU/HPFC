@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import backend
+from PFC.Core import backend
 
 
 def test_resolve_backend_falls_back_to_numpy_when_optional_backends_missing(backend_resolution_mocks):

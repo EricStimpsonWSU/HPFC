@@ -8,10 +8,10 @@ import pytest
 
 
 VARIANT_SPECS = (
-    ("HPFC.sim_pfc_std", "Timestep_stdPFC", ()),
-    ("HPFC.sim_shpfc_std", "Timestep_sHPFC", ("v_x", "v_y")),
-    ("HPFC.sim_shpfc_div_vpsi", "Timestep_sHPFC_div_vpsi", ("v_x", "v_y", "div_vpsi_hat")),
-    ("HPFC.sim_shpfc_psigradmu", "Timestep_sHPFC_psigradmu", ("v_x", "v_y", "v_dot_grad_psi_hat")),
+    ("PFC.stdPFC.sim_pfc_std", "Timestep_stdPFC", ()),
+    ("PFC.sHPFC.sim_shpfc_std", "Timestep_sHPFC", ("v_x", "v_y")),
+    ("PFC.sHPFC.sim_shpfc_div_vpsi", "Timestep_sHPFC_div_vpsi", ("v_x", "v_y", "div_vpsi_hat")),
+    ("PFC.sHPFC.sim_shpfc_psigradmu", "Timestep_sHPFC_psigradmu", ("v_x", "v_y", "v_dot_grad_psi_hat")),
 )
 
 
@@ -57,6 +57,10 @@ def test_consumer_assembly_contract_for_canonical_variants(
     assert sim.model is model
     assert sim.geometry is geometry
     assert sim.psi.shape == contract_psi0.shape
+    assert sim.backend_name in {"numpy", "cupy"}
+    assert sim.backend_fft_name in {"numpy", "pyfftw", "cupy"}
+    assert "arrays=" in sim.backend_summary
+    assert "fft=" in sim.backend_summary
     assert hasattr(sim, step_method)
     assert callable(getattr(sim, step_method))
 
@@ -71,7 +75,8 @@ def test_consumer_assembly_contract_for_canonical_variants(
     assert sim.t == pytest.approx(contract_model_kwargs["dt"])
     assert sim.psi.shape == contract_psi0.shape
     assert sim.psi_hat.shape == contract_psi0.shape
-    assert sim.psi_hat[0, 0] == pytest.approx(sim.psi_hat_00)
+    psi_hat_00 = sim._payload_mgr.to_numpy(sim.psi_hat[0, 0]).item()
+    assert psi_hat_00 == pytest.approx(sim.psi_hat_00)
 
     for field_name in expected_fields:
         field_value = getattr(sim, field_name)
@@ -109,6 +114,23 @@ def test_canonical_sim_modules_do_not_import_legacy_sHPFC(
 
 
 def test_backend_payload_manager_is_importable_from_canonical_payload_module() -> None:
-    from HPFC.payload import BackendPayloadManager
+    from PFC.Core.payload import BackendPayloadManager
 
     assert BackendPayloadManager.__name__ == "BackendPayloadManager"
+
+
+def test_make_sim_logs_backend_summary(
+    contract_model_kwargs,
+    contract_geometry_kwargs,
+    contract_psi0,
+    force_numpy_backend,
+    caplog,
+) -> None:
+    module = importlib.import_module("PFC.stdPFC.sim_pfc_std")
+    model = module.build_model(**contract_model_kwargs)
+    geometry = module.build_geometry(**contract_geometry_kwargs)
+
+    caplog.set_level("INFO")
+    module.make_sim(contract_psi0, model=model, geometry=geometry)
+
+    assert any("Created simulation with backend" in record.message for record in caplog.records)

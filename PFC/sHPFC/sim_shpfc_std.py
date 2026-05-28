@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import numpy as np
 
 from PFC.Core.PFC2D_geometry import geometry_2D
@@ -11,6 +12,10 @@ from PFC.Core._simulation_facade import VariantSimulationFacade
 from PFC.Core.payload import BackendPayloadManager
 from PFC.Core.state import SimulationState
 from PFC.Core.steppers import SHPFCTimestepper, StdPFCTimestepper
+
+
+LOGGER = logging.getLogger(__name__)
+
 BLOCKED_NAMES = {
     "Timestep_stdPFC",
     "Timestep_sHPFC_div_vpsi",
@@ -83,6 +88,12 @@ def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> Var
             self.geometry = state.geometry
             self.std_stepper = StdPFCTimestepper(self.state)
             self.shpfc_stepper = SHPFCTimestepper(self.state)
+            backend_info = self.state._payload_mgr.backend
+            self.backend_name = backend_info.name
+            self.backend_fft_name = backend_info.fft_name
+            self.backend_summary = backend_info.summary()
+            self.backend_is_gpu = backend_info.is_gpu
+            LOGGER.info("Created simulation with backend %s", self.backend_summary)
 
         def __getattr__(self, name: str):
             return getattr(self.state, name)
