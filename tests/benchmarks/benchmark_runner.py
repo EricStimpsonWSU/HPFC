@@ -23,7 +23,7 @@ def build_sim(seed: int, nx: int, ny: int):
 
     from PFC2D_model import model_2D
     from PFC2D_geometry import geometry_2D
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_std import make_sim as sHPFC
 
     rng = np.random.RandomState(seed)
     psi0 = rng.randn(nx, ny) * 0.1

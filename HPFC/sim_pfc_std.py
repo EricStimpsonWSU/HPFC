@@ -8,7 +8,9 @@ from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
 from kernel_rules import KernelRules
 from _simulation_facade import VariantSimulationFacade
-from sHPFC import BackendPayloadManager, sHPFC
+from HPFC.payload import BackendPayloadManager
+from state import SimulationState
+from steppers import StdPFCTimestepper, SHPFCTimestepper
 from state import SimulationState
 from PFC2D_model import resolve_model_parameter
 BLOCKED_NAMES = {
@@ -96,4 +98,29 @@ def make_initial_state(
 
 
 def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> VariantSimulationFacade:
-    return VariantSimulationFacade(sHPFC(psi0, model=model, geometry=geometry), blocked_names=BLOCKED_NAMES)
+    state = make_initial_state(psi0, model=model, geometry=geometry)
+
+    class _SimImpl:
+        def __init__(self, state: SimulationState):
+            self.state = state
+            self.model = state.model
+            self.geometry = state.geometry
+            self.std_stepper = StdPFCTimestepper(self.state)
+            self.shpfc_stepper = SHPFCTimestepper(self.state)
+
+        def __getattr__(self, name: str):
+            return getattr(self.state, name)
+
+        def Timestep_stdPFC(self) -> None:
+            self.std_stepper.step()
+
+        def Timestep_sHPFC(self) -> None:
+            self.shpfc_stepper.step()
+
+        def Timestep_sHPFC_div_vpsi(self) -> None:
+            self.shpfc_stepper.step_div_vpsi()
+
+        def Timestep_sHPFC_psigradmu(self) -> None:
+            self.shpfc_stepper.step_psigradmu()
+
+    return VariantSimulationFacade(_SimImpl(state), blocked_names=BLOCKED_NAMES)

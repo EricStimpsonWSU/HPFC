@@ -5,9 +5,9 @@ import pytest
 
 
 def test_Timestep_sHPFC_updates_velocity_and_preserves_zero_mode(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     t0 = sim.t
     v_x_before = sim._payload_mgr.to_numpy(sim.v_x).copy()
@@ -23,9 +23,9 @@ def test_Timestep_sHPFC_updates_velocity_and_preserves_zero_mode(simple_model, s
 
 
 def test_Timestep_sHPFC_div_vpsi_updates_div_and_psi(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_div_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     t0 = sim.t
     div_before = sim._payload_mgr.to_numpy(sim.div_vpsi_hat).copy()
@@ -41,9 +41,9 @@ def test_Timestep_sHPFC_div_vpsi_updates_div_and_psi(simple_model, simple_geomet
 
 
 def test_Timestep_sHPFC_psigradmu_updates_velocity_and_psi(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_psigradmu import make_sim as make_psigradmu_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_psigradmu_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     t0 = sim.t
     v_before = sim._payload_mgr.to_numpy(sim.v_x).copy()

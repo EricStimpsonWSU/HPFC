@@ -7,9 +7,9 @@ from steppers import SHPFCTimestepper, StdPFCTimestepper
 
 
 def test_state_wrapper_and_std_stepper_delegate_to_simulation(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     state = SimulationState(sim._payload_mgr, sim.model, sim.geometry, sim.kernels, psi0)
     assert state.psi.shape == psi0.shape
@@ -24,9 +24,9 @@ def test_state_wrapper_and_std_stepper_delegate_to_simulation(simple_model, simp
 
 
 def test_hydro_stepper_variants_advance_time(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
     state = SimulationState(sim._payload_mgr, sim.model, sim.geometry, sim.kernels, psi0)
     stepper = SHPFCTimestepper(state)
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from HPFC.sHPFC import BackendPayloadManager
+from HPFC.payload import BackendPayloadManager
 from HPFC.state import SimulationState
 from HPFC.kernel_rules import KernelRules
 

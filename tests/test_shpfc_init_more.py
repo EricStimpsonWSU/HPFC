@@ -5,9 +5,9 @@ import inspect
 
 
 def test_shpfc_shapes_and_dtypes(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     # shapes
     assert sim.psi.shape == simple_geometry.shape
@@ -21,9 +21,9 @@ def test_shpfc_shapes_and_dtypes(simple_model, simple_geometry, psi0, force_nump
 
 
 def test_shpfc_initial_values_and_aliasing(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     # psi was initialized from psi0
     assert np.allclose(sim.psi, psi0)
@@ -33,10 +33,20 @@ def test_shpfc_initial_values_and_aliasing(simple_model, simple_geometry, psi0, 
 
 
 def test_shpfc_methods_exist(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_pfc_std import make_sim as make_std_sim
+    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    std_sim = make_std_sim(psi0, model=simple_model, geometry=simple_geometry)
+    shpfc_sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
-    for name in ("Timestep_stdPFC", "Timestep_sHPFC", "calc_mu", "calc_f", "calc_poly_psi"):
-        assert hasattr(sim, name)
-        assert inspect.isroutine(getattr(sim, name))
+    assert hasattr(std_sim, "Timestep_stdPFC")
+    assert inspect.isroutine(getattr(std_sim, "Timestep_stdPFC"))
+
+    assert hasattr(shpfc_sim, "Timestep_sHPFC")
+    assert inspect.isroutine(getattr(shpfc_sim, "Timestep_sHPFC"))
+
+    # core calculation routines live on the state and should be available
+    assert hasattr(std_sim, "calc_mu")
+    assert inspect.isroutine(getattr(std_sim, "calc_mu"))
+    assert hasattr(std_sim, "calc_f")
+    assert inspect.isroutine(getattr(std_sim, "calc_f"))

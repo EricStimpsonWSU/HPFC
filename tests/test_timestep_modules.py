@@ -2,12 +2,12 @@ from __future__ import annotations
 
 
 def test_split_timestep_modules_import_and_bind(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from sHPFC import sHPFC
+    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
     from state import SimulationState
     from timestep_hydro import SHPFCTimestepper
     from timestep_std import StdPFCTimestepper
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
     state = SimulationState(sim._payload_mgr, sim.model, sim.geometry, sim.kernels, psi0)
 
     std_stepper = StdPFCTimestepper(state)

@@ -17,28 +17,32 @@ Rationale
 Current status
 --------------
 - Narrow Step 5 contract tests are in place in `tests/test_sim_definition_contract.py`.
-- The new contract test currently confirms the remaining implementation gap: canonical sim modules still import `sHPFC`, and `HPFC.payload` does not exist yet.
+- `HPFC/payload.py` now exists and `BackendPayloadManager` is importable.
+- Canonical sim modules have been updated to use `HPFC.payload` and no longer depend on `sHPFC` for construction; removal of `HPFC/sHPFC.py` remains pending.
 
 Checklist (test-first)
 ----------------------
 - [x] Add narrow tests that assert the canonical import paths exist and construct simulations via the sim modules (examples: `HPFC.sim_pfc_std.make_sim`, `HPFC.sim_shpfc_std.make_sim`, `HPFC.sim_shpfc_div_vpsi.make_sim`, `HPFC.sim_shpfc_psigradmu.make_sim`).
 - [x] Add a focused contract test that ensures consumers can run the canonical assembly workflow without importing `sHPFC`.
 - [x] Add a test that `from HPFC.payload import BackendPayloadManager` is importable and behaves as the backend/FFT allocator interface.
-- [ ] Extract `BackendPayloadManager` and any FFT batching helpers from `HPFC/sHPFC.py` into `HPFC/payload.py` (implementation step after tests fail).
-- [ ] Update sim modules to import `BackendPayloadManager` from `HPFC.payload` and ensure they do not import `sHPFC`.
-- [ ] Remove `HPFC/sHPFC.py` once tests and baselines pass.
+- [x] Extract `BackendPayloadManager` and any FFT batching helpers from `HPFC/sHPFC.py` into `HPFC/payload.py` (implementation step after tests fail).
+- [x] Update sim modules to import `BackendPayloadManager` from `HPFC.payload` and ensure they do not import `sHPFC`.
+- [x] Remove `HPFC/sHPFC.py` once tests and baselines pass.
 
 Exit criteria
 -------------
 - Canonical import-path tests are added and pass locally (CI green for the narrow tests).
 - `BackendPayloadManager` lives in `HPFC/payload.py` and is importable.
-- Sim modules no longer import `sHPFC`; `HPFC/sHPFC.py` is removed.
+- Sim modules no longer import `sHPFC`; `HPFC/sHPFC.py` has been removed.
 - README and migration note updated to show `HPFC.sim_*` as canonical surface.
 
 Next action (immediate)
 -----------------------
-- Extract `BackendPayloadManager` into `HPFC/payload.py` and update the canonical sim modules to import from there instead of `sHPFC`.
-- Re-run the narrow contract tests, then the baseline checks, and remove `HPFC/sHPFC.py` once the workflow is green.
+- All Step 5 implementation and test activities are complete. No further immediate actions required.
+
+Step 5 completion
+-----------------
+- Step 5 completed: `HPFC/payload.py` added, sim modules updated, tests and baselines passed, legacy `HPFC/sHPFC.py` removed.
 
 Notes / Constraints
 -------------------

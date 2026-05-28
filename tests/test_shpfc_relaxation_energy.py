@@ -7,7 +7,7 @@ import pytest
 
 from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
-from sHPFC import sHPFC
+from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
 
 def _build_notebook_like_crystal_field(*, Mx: int = 8, My: int = 5, target_dx: float = 0.5):
@@ -96,7 +96,20 @@ def test_relaxation_energy_monotone_two_phase_for_timestep_variants(stepper_name
 
     model = _build_model(dt=0.1)
     geometry = geometry_2D((Nx, Ny), Lx, Ly)
-    sim = sHPFC(psi0=psi, model=model, geometry=geometry)
+    if stepper_name == "Timestep_stdPFC":
+        from HPFC.sim_pfc_std import make_sim as make_std_sim
+
+        sim = make_std_sim(psi0=psi, model=model, geometry=geometry)
+    elif stepper_name == "Timestep_sHPFC":
+        sim = make_shpfc_sim(psi0=psi, model=model, geometry=geometry)
+    elif stepper_name == "Timestep_sHPFC_div_vpsi":
+        from HPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
+
+        sim = make_div_sim(psi0=psi, model=model, geometry=geometry)
+    else:
+        from HPFC.sim_shpfc_psigradmu import make_sim as make_psigradmu_sim
+
+        sim = make_psigradmu_sim(psi0=psi, model=model, geometry=geometry)
 
     # Pass 1: compact refinement pass (30 total steps sampled every 10)
     energies_phase1 = _phase_energies(sim, stepper_name, frames=3, sample_every=10)
@@ -118,6 +131,13 @@ def test_relaxation_energy_monotone_two_phase_for_timestep_variants(stepper_name
     ).real
 
     # Pass 2: compact stable-amplitude pass (30 total steps sampled every 10)
-    sim2 = sHPFC(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
+    if stepper_name == "Timestep_stdPFC":
+        sim2 = make_std_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
+    elif stepper_name == "Timestep_sHPFC":
+        sim2 = make_shpfc_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
+    elif stepper_name == "Timestep_sHPFC_div_vpsi":
+        sim2 = make_div_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
+    else:
+        sim2 = make_psigradmu_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
     energies_phase2 = _phase_energies(sim2, stepper_name, frames=3, sample_every=10)
     _assert_nonincreasing(energies_phase2)

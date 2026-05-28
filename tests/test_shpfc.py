@@ -4,13 +4,13 @@ import numpy as np
 import pytest
 
 import backend
-from sHPFC import sHPFC
+from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 from tests.helpers import assert_allclose
 
 
 def test_shpfc_initialization_builds_backend_arrays(simple_model, simple_geometry, psi0, force_numpy_backend):
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     assert sim.psi.shape == psi0.shape
     assert sim.psi_hat.shape == psi0.shape
@@ -23,7 +23,9 @@ def test_shpfc_initialization_builds_backend_arrays(simple_model, simple_geometr
 
 def test_std_pfc_timestep_advances_state(simple_model, simple_geometry, psi0, force_numpy_backend):
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    from HPFC.sim_pfc_std import make_sim as make_std_sim
+
+    sim = make_std_sim(psi0, model=simple_model, geometry=simple_geometry)
     initial_t = sim.t
     initial_zero_mode = sim.psi_hat_00
 
@@ -36,7 +38,9 @@ def test_std_pfc_timestep_advances_state(simple_model, simple_geometry, psi0, fo
 
 def test_divergence_based_shpfc_timestep_runs(simple_model, simple_geometry, psi0, force_numpy_backend):
 
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    from HPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
+
+    sim = make_div_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     sim.Timestep_sHPFC_div_vpsi()
 

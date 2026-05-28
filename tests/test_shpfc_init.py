@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 import backend
-from sHPFC import sHPFC
+from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
 
 def test_shpfc_converts_geometry_and_kernels_to_backend_arrays(simple_model, simple_geometry, psi0, force_numpy_backend):
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     # K-space geometry arrays converted
     assert isinstance(sim.KX, np.ndarray)
@@ -25,7 +25,7 @@ def test_shpfc_converts_geometry_and_kernels_to_backend_arrays(simple_model, sim
 
 
 def test_shpfc_aliases_are_views_of_internal_batches(simple_model, simple_geometry, psi0, force_numpy_backend):
-    sim = sHPFC(psi0, model=simple_model, geometry=simple_geometry)
+    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     # psi should share memory with the first slice of internal _psi_poly
     assert np.shares_memory(sim.psi, sim._psi_poly[0])
@@ -40,4 +40,4 @@ def test_shpfc_rejects_incompatible_model_types(simple_geometry, psi0, force_num
         pass
 
     with pytest.raises(AttributeError):
-        sHPFC(psi0, model=BadModel(), geometry=simple_geometry)
+        make_shpfc_sim(psi0, model=BadModel(), geometry=simple_geometry)
