@@ -11,9 +11,9 @@ Boundary
 - Variant-specific names like `v_x`, `v_y`, `v_x_hat`, `v_y_hat`, `div_v`, `v_dot_grad_psi`, and `div_vpsi_hat` should be treated as sim-module surface decisions, not as assumptions baked into `SimulationState`.
 
 Checklist
-- [ ] Add narrow contract tests that prove `SimulationState` still owns the shared buffers and that the batch views alias the same arrays.
-- [ ] Add narrow contract tests that verify the standard module hides hydrodynamic names while the hydrodynamic sim modules expose only the names they need.
-- [ ] Add a focused test that checks the named hydro views still share backing storage when they are allocated.
+- [x] Add narrow contract tests that prove `SimulationState` still owns the shared buffers and that the batch views alias the same arrays.
+- [x] Add narrow contract tests that verify the standard module hides hydrodynamic names while the hydrodynamic sim modules expose only the names they need.
+- [x] Add a focused test that checks the named hydro views still share backing storage when they are allocated.
 - [ ] Move or trim any remaining variant-specific field exposure logic out of `HPFC/state.py` only if the new tests show it is still coupled there.
 - [ ] Keep the change local to the state/sim boundary; do not touch design/spec docs or unrelated kernel/model code.
 
@@ -24,7 +24,7 @@ Exit criteria
 - The narrow Step 6 tests pass without changing the committed baseline behavior.
 
 Next action
-- Add the narrow state-ownership and aliasing tests first, then make the smallest state/sim boundary adjustment those tests require.
+- Review `HPFC/state.py` against the new contract tests and make the smallest state/sim boundary adjustment only if the implementation still overreaches the state ownership boundary.
 
 Notes
 - Treat `.github/refactors/pfc-sim-definition-refactor-plan.md` as the source of truth for the split.

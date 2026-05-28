@@ -60,14 +60,11 @@ def test_consumer_assembly_contract_for_canonical_variants(
     assert hasattr(sim, step_method)
     assert callable(getattr(sim, step_method))
 
-    if module_path == "HPFC.sim_pfc_std":
-        assert not hasattr(sim, "Timestep_sHPFC")
-        assert not hasattr(sim, "Timestep_sHPFC_div_vpsi")
-        assert not hasattr(sim, "Timestep_sHPFC_psigradmu")
-        assert not hasattr(sim, "v_x")
-        assert not hasattr(sim, "v_y")
-        assert not hasattr(sim, "div_vpsi_hat")
-        assert not hasattr(sim, "v_dot_grad_psi_hat")
+    for field_name in getattr(module, "BLOCKED_NAMES", ()):
+        assert not hasattr(sim, field_name)
+
+    for field_name in expected_fields:
+        assert hasattr(sim, field_name)
 
     getattr(sim, step_method)()
 
