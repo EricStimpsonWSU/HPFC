@@ -18,15 +18,15 @@ Pre (commit 7cf81e1)
 - std  ≈ 0.0000814 s
 
 Post (main)
-- samples: [0.0003269000008003786, 0.0003161999993608333, 0.0003130000004603062, 0.00031070000113686547, 0.0003259999994043028]
-- mean = 0.0003186 s
-- median = 0.0003162 s
-- std  ≈ 0.0000067 s
+- samples: [0.0002593000026536174, 0.0003161999993608333, 0.0002280000044265762, 0.00022519999765791, 0.00022300000273389742]
+- mean = 0.0002503 s
+- median = 0.0002280 s
+- std  ≈ 0.0000355 s
 
 Comparison
-- Mean time reduced from ~0.3771 ms to ~0.3186 ms.
-- Speedup factor (pre_mean / post_mean) ≈ 1.18×.
-- Relative reduction: ~15.5% faster per step (sanity check).
+- Mean time reduced from ~0.3771 ms to ~0.2503 ms.
+- Speedup factor (pre_mean / post_mean) ≈ 1.51×.
+- Relative reduction: ~33.6% faster per step (sanity check).
 
 Notes
 - These are quick sanity checks on a laptop using a small problem size and short runs. Results are noisy but show no regression; post-refactor is modestly faster here.

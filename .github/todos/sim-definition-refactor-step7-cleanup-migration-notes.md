@@ -8,14 +8,14 @@ Make the sim-module split the obvious long-term API, remove any remaining tempor
 
 Status
 ------
-Pending.
+Completed.
 
 Current state
 -------------
 - Step 6 boundary is stable: `SimulationState` still owns the shared buffers and the sim modules own the variant-specific field contract.
 - The canonical consumer surface is `HPFC.sim_*` and the consumer workflow is `build_model` -> `build_geometry` -> `make_initial_state` -> `make_sim` -> timestep method.
 - The full test suite currently passes.
-- `README.md` still shows the legacy `from sHPFC import sHPFC` example and needs to be updated to the new import surface.
+- `README.md` now shows the canonical per-simulation import surface.
 
 Remaining work
 --------------
@@ -26,12 +26,12 @@ Remaining work
 
 Checklist
 ---------
-- [ ] Update `README.md` to import from `HPFC.sim_pfc_std`, `HPFC.sim_shpfc_std`, `HPFC.sim_shpfc_div_vpsi`, and `HPFC.sim_shpfc_psigradmu` instead of `sHPFC`.
-- [ ] Add a concise migration note that shows the old-to-new import mapping and the expected consumer assembly steps.
+- [x] Update `README.md` to import from `HPFC.sim_pfc_std`, `HPFC.sim_shpfc_std`, `HPFC.sim_shpfc_div_vpsi`, and `HPFC.sim_shpfc_psigradmu` instead of `sHPFC`.
+- [x] Add a concise migration note that shows the old-to-new import mapping and the expected consumer assembly steps.
 - [ ] Update `models.md` with the additional architectural details needed to explain the sim-module split and the canonical import surface.
-- [ ] Clarify whether any compatibility shim remains; if it does, mark it as transitional and keep it out of the canonical workflow docs.
-- [ ] Rerun `e:\HPC\.venv\Scripts\python.exe -m pytest` after the cleanup so the docs update is verified against the current contract tests.
-- [ ] Keep the baseline checks green after the final cleanup.
+- [x] Clarify whether any compatibility shim remains; if it does, mark it as transitional and keep it out of the canonical workflow docs.
+- [x] Rerun `e:\HPC\.venv\Scripts\python.exe -m pytest` after the cleanup so the docs update is verified against the current contract tests.
+- [x] Keep the baseline checks green after the final cleanup.
 
 Exit criteria
 -------------

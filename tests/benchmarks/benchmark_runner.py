@@ -16,14 +16,15 @@ import numpy as np
 
 
 def build_sim(seed: int, nx: int, ny: int):
-    # insert HPFC package dir so imports work when run from repo root
+    # insert repo root and HPFC package dir so imports work when run from repo root
     repo_root = Path(__file__).resolve().parents[2]
     hpfc_dir = repo_root / "HPFC"
+    sys.path.insert(0, str(repo_root))
     sys.path.insert(0, str(hpfc_dir))
 
     from PFC2D_model import model_2D
     from PFC2D_geometry import geometry_2D
-    from HPFC.sim_shpfc_std import make_sim as sHPFC
+    from HPFC.sim_pfc_std import make_sim as sHPFC
 
     rng = np.random.RandomState(seed)
     psi0 = rng.randn(nx, ny) * 0.1
