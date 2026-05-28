@@ -5,7 +5,7 @@ Prefer `kernel_rules.KernelRules` for new code.
 
 from __future__ import annotations
 
-from kernel_rules import (
+from PFC.Core.kernel_rules import (
 	KernelRules,
 	_cell_volume,
 	_normalize_kernel_hat_mean,

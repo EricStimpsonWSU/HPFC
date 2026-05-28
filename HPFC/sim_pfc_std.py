@@ -4,15 +4,13 @@ from __future__ import annotations
 
 import numpy as np
 
-from PFC2D_geometry import geometry_2D
-from PFC2D_model import model_2D
-from kernel_rules import KernelRules
-from _simulation_facade import VariantSimulationFacade
-from HPFC.payload import BackendPayloadManager
-from state import SimulationState
-from steppers import StdPFCTimestepper, SHPFCTimestepper
-from state import SimulationState
-from PFC2D_model import resolve_model_parameter
+from PFC.Core.PFC2D_geometry import geometry_2D
+from PFC.Core.PFC2D_model import model_2D, resolve_model_parameter
+from PFC.Core.kernel_rules import KernelRules
+from PFC.Core._simulation_facade import VariantSimulationFacade
+from PFC.Core.payload import BackendPayloadManager
+from PFC.Core.state import SimulationState
+from PFC.Core.steppers import SHPFCTimestepper, StdPFCTimestepper
 BLOCKED_NAMES = {
     "Timestep_sHPFC",
     "Timestep_sHPFC_div_vpsi",

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from state import SimulationState
+from PFC.Core.state import SimulationState
 
 
 class StdPFCTimestepper:

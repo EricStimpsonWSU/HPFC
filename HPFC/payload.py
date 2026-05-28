@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 
-import backend
+from PFC.Core import backend
 
 
 class BackendPayloadManager:

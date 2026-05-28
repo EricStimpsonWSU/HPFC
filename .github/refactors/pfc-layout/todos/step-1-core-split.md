@@ -4,7 +4,7 @@ Purpose
 - Move the shared implementation into PFC/Core while keeping runtime behavior and numerical outputs unchanged. This step only defines the shared/core boundary and a minimal, file-level migration plan — no code moves or implementation are performed here.
 
 Checklist (file-level classification)
-- [ ] Core (should be moved to `PFC/Core`):
+- [x] Core (should be moved to `PFC/Core`):
 	- HPFC/backend.py
 	- HPFC/fft_utils.py
 	- HPFC/fields.py
@@ -17,7 +17,7 @@ Checklist (file-level classification)
 	- HPFC/_simulation_facade.py (shared entrypoints)
 	- HPFC/steppers.py
 
-- [ ] Model-specific (must remain under model folders):
+- [x] Model-specific (must remain under model folders):
 	- HPFC/sim_pfc_std.py  -> PFC/stdPFC
 	- HPFC/sim_shpfc_std.py -> PFC/sHPFC
 	- HPFC/sim_shpfc_div_vpsi.py -> PFC/sHPFC
@@ -40,10 +40,11 @@ Exit criteria (explicit)
 - [x] A clear list of files to move during implementation is present and unambiguous.
 
 Status
-- Satisfied by the narrow contract coverage in `tests/test_pfc_import_contract.py` and the consumer expectation checks in `tests/test_pfc_entrypoints_core.py`, `tests/test_pfc_entrypoints_std.py`, and `tests/test_pfc_entrypoints_shpfc.py`.
+- Completed on 2026-05-28 after landing the `PFC.Core` package boundary and keeping the deterministic baseline suite green.
+- Validation: `tests/test_pfc_entrypoints_core.py`, `tests/test_pfc_entrypoints_std.py`, `tests/test_pfc_entrypoints_shpfc.py`, `tests/test_pfc_import_contract.py`, and `tests/test_baselines_check.py` all passed.
 
 Next action
-- Prepare the Step 2 artifacts: a small set of import-contract tests and a mapping file that records old -> new import paths. After you approve this classification I will generate the import-contract tests (using e:\\HPC\\.venv\\Scripts\\python.exe -m pytest) and then implement the first guarded moves in small commits.
+- Step 1 is complete.
 
 Exit note
 - This file is intentionally conservative: if you want an alternative split (for example moving `PFC2D_model.py` into model folders), tell me which files to reconsider and I will update the classification before implementation.

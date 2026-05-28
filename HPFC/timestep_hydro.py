@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from state import SimulationState
-from PFC2D_model import resolve_model_parameter
+from PFC.Core.PFC2D_model import resolve_model_parameter
+from PFC.Core.state import SimulationState
 
 
 class SHPFCTimestepper:

@@ -7,8 +7,8 @@ from typing import Sequence
 
 import numpy as np
 
-from PFC2D_geometry import geometry_2D
-from PFC2D_model import model_2D, resolve_model_parameter
+from PFC.Core.PFC2D_geometry import geometry_2D
+from PFC.Core.PFC2D_model import model_2D, resolve_model_parameter
 import importlib
 from types import ModuleType
 
@@ -119,7 +119,7 @@ class KernelRules:
             # usages.
             # Try a generic in-file builder for any object that exposes the
             # required model parameters (flat attributes or nested `hydro`).
-            from PFC2D_model import resolve_model_parameter
+            from PFC.Core.PFC2D_model import resolve_model_parameter
 
             def _build_from_generic_model(model, geometry):
                 # This will raise AttributeError if required params are missing

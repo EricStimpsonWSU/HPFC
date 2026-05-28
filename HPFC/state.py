@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from fields import ForceBatch, GradBatch, GradMuBatch, PsiBatch, PsiGradBatch, VelBatch
+from PFC.Core.fields import ForceBatch, GradBatch, GradMuBatch, PsiBatch, PsiGradBatch, VelBatch
 
 
 class _VelBatchProxy:
