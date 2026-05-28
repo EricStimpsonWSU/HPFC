@@ -8,8 +8,10 @@ Checklist
 - [x] Create a runnable list of source files to move for `PFC/stdPFC`.
 - [x] Create a runnable list of source files to move for `PFC/sHPFC`.
 - [x] Add narrow import-contract tests: `tests/test_pfc_entrypoints_model_contract.py` (verifies `PFC.stdPFC.make_sim` and `PFC.sHPFC.make_sim`) — ran locally (2 passed).
-- [ ] Move the listed source files into `PFC/stdPFC` (perform after confirmation).
-- [ ] Move the listed source files into `PFC/sHPFC` (perform after confirmation).
+- [x] Move the listed source files into `PFC/stdPFC` (perform after confirmation).
+- [x] Move the listed source files into `PFC/sHPFC` (perform after confirmation).
+- [x] Find and remove any absolute paths in PFC/**/*.* or tests/**/*.* and pass all tests.
+- [ ] Remove all shims and pass all tests.
 - [ ] Verify no design/spec markdown needs editing for this step.
 
 What to verify first

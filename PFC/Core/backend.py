@@ -204,6 +204,8 @@ def resolve_backend(
 		return _resolve_numpy_backend()
 
 	if array_choice == "numpy":
+		if fft_choice == "cupy":
+			raise ValueError("fft=cupy requires array=cupy")
 		if fft_choice in {"pyfftw", "fftw"}:
 			backend = _resolve_numpy_fftw_backend()
 			if backend is not None:
