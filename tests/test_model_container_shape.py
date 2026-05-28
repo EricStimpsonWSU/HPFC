@@ -46,7 +46,7 @@ def test_minimal_model_container_shape_exposes_shared_and_namespaced_settings() 
     assert not hasattr(model, "Gamma_s")
 
 
-@pytest.mark.parametrize("module_path", ("HPFC.sim_pfc_std", "HPFC.sim_shpfc_std"))
+@pytest.mark.parametrize("module_path", ("PFC.stdPFC.sim_pfc_std", "PFC.sHPFC.sim_shpfc_std"))
 def test_existing_sim_assembly_can_consume_minimal_model_container(module_path: str) -> None:
     module = importlib.import_module(module_path)
     model = SimpleModelContainer(

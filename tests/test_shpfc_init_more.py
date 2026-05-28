@@ -5,7 +5,7 @@ import inspect
 
 
 def test_shpfc_shapes_and_dtypes(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+    from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
     sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
@@ -21,7 +21,7 @@ def test_shpfc_shapes_and_dtypes(simple_model, simple_geometry, psi0, force_nump
 
 
 def test_shpfc_initial_values_and_aliasing(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+    from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
     sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
@@ -33,8 +33,8 @@ def test_shpfc_initial_values_and_aliasing(simple_model, simple_geometry, psi0, 
 
 
 def test_shpfc_methods_exist(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from HPFC.sim_pfc_std import make_sim as make_std_sim
-    from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+    from PFC.stdPFC.sim_pfc_std import make_sim as make_std_sim
+    from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
     std_sim = make_std_sim(psi0, model=simple_model, geometry=simple_geometry)
     shpfc_sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)

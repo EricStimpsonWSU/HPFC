@@ -6,7 +6,7 @@ import importlib
 def test_simplified_model_container_consumption(
     contract_model_kwargs, contract_geometry_kwargs, contract_psi0, force_numpy_backend
 ) -> None:
-    module = importlib.import_module("HPFC.sim_pfc_std")
+    module = importlib.import_module("PFC.stdPFC.sim_pfc_std")
 
     model = module.build_model(**contract_model_kwargs)
     geometry = module.build_geometry(**contract_geometry_kwargs)
