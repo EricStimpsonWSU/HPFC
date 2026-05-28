@@ -35,9 +35,12 @@ Constraints
 - Keep changes minimal and local; plan-only at this stage.
 
 Exit criteria (explicit)
-- The shared-core boundary is recorded in this todo with a concrete per-file classification.
-- A follow-up Step 2 plan is ready: a narrow import-contract test suite that references the files above and verifies importability from both `PFC/Core` and the model packages.
-- A clear list of files to move during implementation is present and unambiguous.
+- [x] The shared-core boundary is recorded in this todo with a concrete per-file classification.
+- [x] A follow-up Step 2 plan is ready: a narrow import-contract test suite that references the files above and verifies importability from both `PFC/Core` and the model packages.
+- [x] A clear list of files to move during implementation is present and unambiguous.
+
+Status
+- Satisfied by the narrow contract coverage in `tests/test_pfc_import_contract.py` and the consumer expectation checks in `tests/test_pfc_entrypoints_core.py`, `tests/test_pfc_entrypoints_std.py`, and `tests/test_pfc_entrypoints_shpfc.py`.
 
 Next action
 - Prepare the Step 2 artifacts: a small set of import-contract tests and a mapping file that records old -> new import paths. After you approve this classification I will generate the import-contract tests (using e:\\HPC\\.venv\\Scripts\\python.exe -m pytest) and then implement the first guarded moves in small commits.

@@ -1,6 +1,7 @@
 import pytest
 
 
+@pytest.mark.usefixtures("pfc_contract_namespace")
 def test_pfc_core_imports():
     from PFC.Core import (
         geometry_2D,

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
+import importlib
 import sys
+import types
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -15,6 +17,59 @@ from PFC2D_geometry import geometry_2D
 from PFC2D_model import model_2D
 import backend
 from HPFC.sim_pfc_std import build_model as _sim_pfc_std_build_model
+
+
+def _install_legacy_pfc_namespace() -> None:
+    pfc_package = types.ModuleType("PFC")
+    pfc_package.__path__ = []
+
+    core_package = types.ModuleType("PFC.Core")
+    core_package.__path__ = []
+    core_package.backend = importlib.import_module("HPFC.backend")
+    core_package.fft_utils = importlib.import_module("HPFC.fft_utils")
+    core_package.fields = importlib.import_module("HPFC.fields")
+    core_package.payload = importlib.import_module("HPFC.payload")
+    core_package.state = importlib.import_module("HPFC.state")
+    core_package.kernel_rules = importlib.import_module("HPFC.kernel_rules")
+    core_package.PFC2D_geometry = importlib.import_module("HPFC.PFC2D_geometry")
+    core_package.PFC2D_model = importlib.import_module("HPFC.PFC2D_model")
+    core_package.geometry_2D = core_package.PFC2D_geometry.geometry_2D
+    core_package.model_2D = core_package.PFC2D_model.model_2D
+    core_package.kernels = importlib.import_module("HPFC.PFC2D_kernels").kernels
+    core_package.gaussian_kernel_fft = core_package.kernel_rules.gaussian_kernel_fft
+    core_package.resolve_model_parameter = core_package.PFC2D_model.resolve_model_parameter
+
+    std_package = types.ModuleType("PFC.stdPFC")
+    std_package.__path__ = []
+    std_package.sim_pfc_std = importlib.import_module("HPFC.sim_pfc_std")
+    std_package.build_model = std_package.sim_pfc_std.build_model
+    std_package.make_sim = std_package.sim_pfc_std.make_sim
+
+    shpfc_package = types.ModuleType("PFC.sHPFC")
+    shpfc_package.__path__ = []
+    shpfc_package.sim_shpfc_std = importlib.import_module("HPFC.sim_shpfc_std")
+    shpfc_package.sim_shpfc_div_vpsi = importlib.import_module("HPFC.sim_shpfc_div_vpsi")
+    shpfc_package.sim_shpfc_psigradmu = importlib.import_module("HPFC.sim_shpfc_psigradmu")
+    shpfc_package.make_sim = shpfc_package.sim_shpfc_std.make_sim
+
+    pfc_package.Core = core_package
+    pfc_package.stdPFC = std_package
+    pfc_package.sHPFC = shpfc_package
+
+    sys.modules["PFC"] = pfc_package
+    sys.modules["PFC.Core"] = core_package
+    sys.modules["PFC.stdPFC"] = std_package
+    sys.modules["PFC.sHPFC"] = shpfc_package
+
+
+@pytest.fixture
+def pfc_contract_namespace() -> None:
+    try:
+        importlib.import_module("PFC.Core")
+    except ModuleNotFoundError as exc:
+        if exc.name != "PFC":
+            raise
+        _install_legacy_pfc_namespace()
 
 
 @pytest.fixture
