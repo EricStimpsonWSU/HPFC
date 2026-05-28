@@ -221,4 +221,4 @@ __marimo__/
 .vscode/
 
 # Output files
-*.pdf
+*_specs.pdf
