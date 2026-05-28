@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from PFC2D_kernels import _normalize_kernel_hat_mean, gaussian_kernel_fft, kernels
+from PFC.Core.PFC2D_kernels import _normalize_kernel_hat_mean, gaussian_kernel_fft, kernels
 from tests.helpers import assert_allclose
 
 

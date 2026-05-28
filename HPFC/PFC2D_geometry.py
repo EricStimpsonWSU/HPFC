@@ -1,1 +1,0 @@
-from PFC.Core.PFC2D_geometry import *

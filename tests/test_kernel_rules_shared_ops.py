@@ -3,12 +3,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from HPFC.kernel_rules import (
-    gaussian_kernel_fft,
-    _normalize_kernel_hat_mean,
+from PFC.Core.kernel_rules import (
+    KernelRules,
     _to_spacing_tuple,
     _cell_volume,
-    KernelRules,
+    _normalize_kernel_hat_mean,
+    gaussian_kernel_fft,
 )
 from tests.helpers import assert_allclose
 

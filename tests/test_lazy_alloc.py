@@ -1,8 +1,8 @@
 import numpy as np
 
-from HPFC.payload import BackendPayloadManager
-from HPFC.state import SimulationState
-from HPFC.kernel_rules import KernelRules
+from PFC.Core.payload import BackendPayloadManager
+from PFC.Core.state import SimulationState
+from PFC.Core.kernel_rules import KernelRules
 
 
 def test_lazy_allocation(simple_model, simple_geometry, psi0, force_numpy_backend):

@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from PFC2D_kernels import (
+from PFC.Core.PFC2D_kernels import (
     _to_spacing_tuple,
     _cell_volume,
     _normalize_kernel_hat_mean,
@@ -37,7 +37,7 @@ def test_gaussian_kernel_fft_requires_non_scalar_k2():
 
 
 def test_build_nonlinear_etd_behavior_from_kernels(simple_model, simple_geometry):
-    from PFC2D_kernels import kernels
+    from PFC.Core.PFC2D_kernels import kernels
 
     ks = kernels(model=simple_model, geometry=simple_geometry)
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from kernel_rules import KernelRules
-from PFC2D_kernels import kernels as legacy_kernels
+from PFC.Core.kernel_rules import KernelRules
+from PFC.Core.PFC2D_kernels import kernels as legacy_kernels
 from tests.helpers import assert_allclose
 
 

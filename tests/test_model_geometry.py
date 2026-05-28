@@ -3,8 +3,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from PFC2D_geometry import geometry_2D, geometry_2D_CPU, geometry_1D, geometry_3D
-from PFC2D_model import model_2D, model_2D_CPU, model_1D, model_3D
+from PFC.Core.PFC2D_geometry import geometry_2D, geometry_2D_CPU, geometry_1D, geometry_3D
+from PFC.Core.PFC2D_model import model_2D, model_2D_CPU, model_1D, model_3D
 from tests.helpers import assert_allclose
 
 

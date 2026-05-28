@@ -1,8 +1,8 @@
 import numpy as np
 
-from HPFC.fft_utils import get_dc_mode, set_dc_mode, batched_fftn, batched_ifftn_real
+from PFC.Core.fft_utils import get_dc_mode, set_dc_mode, batched_fftn, batched_ifftn_real
 
-from HPFC.payload import BackendPayloadManager
+from PFC.Core.payload import BackendPayloadManager
 
 
 def test_get_set_dc_mode_roundtrip():

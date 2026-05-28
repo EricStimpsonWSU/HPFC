@@ -6,9 +6,9 @@ import numpy as np
 from numpy.polynomial.hermite_e import hermeval
 import pytest
 
-from PFC2D_geometry import geometry_2D
-from PFC2D_model import model_2D
-from PFC2D_kernels import kernels
+from PFC.Core.PFC2D_geometry import geometry_2D
+from PFC.Core.PFC2D_model import model_2D
+from PFC.Core.PFC2D_kernels import kernels
 from tests.helpers import assert_allclose
 
 

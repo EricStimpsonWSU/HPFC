@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from fields import ForceBatch, GradBatch, GradMuBatch, PsiBatch, PsiGradBatch, VelBatch
+from PFC.Core.fields import ForceBatch, GradBatch, GradMuBatch, PsiBatch, PsiGradBatch, VelBatch
 
 
 def test_field_wrappers_expose_views_into_backing_arrays():

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from HPFC.kernel_rules import KernelRules
+from PFC.Core.kernel_rules import KernelRules
 from tests.helpers import assert_allclose
 
 

@@ -5,9 +5,9 @@ import math
 import numpy as np
 import pytest
 
-from PFC2D_geometry import geometry_2D
-from PFC2D_model import model_2D
-from HPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+from PFC.Core.PFC2D_geometry import geometry_2D
+from PFC.Core.PFC2D_model import model_2D
+from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
 
 
 def _build_notebook_like_crystal_field(*, Mx: int = 8, My: int = 5, target_dx: float = 0.5):
@@ -97,17 +97,17 @@ def test_relaxation_energy_monotone_two_phase_for_timestep_variants(stepper_name
     model = _build_model(dt=0.1)
     geometry = geometry_2D((Nx, Ny), Lx, Ly)
     if stepper_name == "Timestep_stdPFC":
-        from HPFC.sim_pfc_std import make_sim as make_std_sim
+        from PFC.stdPFC.sim_pfc_std import make_sim as make_std_sim
 
         sim = make_std_sim(psi0=psi, model=model, geometry=geometry)
     elif stepper_name == "Timestep_sHPFC":
         sim = make_shpfc_sim(psi0=psi, model=model, geometry=geometry)
     elif stepper_name == "Timestep_sHPFC_div_vpsi":
-        from HPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
+        from PFC.sHPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
 
         sim = make_div_sim(psi0=psi, model=model, geometry=geometry)
     else:
-        from HPFC.sim_shpfc_psigradmu import make_sim as make_psigradmu_sim
+        from PFC.sHPFC.sim_shpfc_psigradmu import make_sim as make_psigradmu_sim
 
         sim = make_psigradmu_sim(psi0=psi, model=model, geometry=geometry)
 
