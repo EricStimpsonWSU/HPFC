@@ -5,8 +5,9 @@ Purpose: move the standard and hydrodynamic model entry points into `PFC/stdPFC`
 Checklist
 - [x] Identify all files that are model-specific (std vs sHPFC).
 - [x] Confirm shared/core modules that must remain in `PFC/Core`.
-- [ ] Create a runnable list of source files to move for `PFC/stdPFC`.
-- [ ] Create a runnable list of source files to move for `PFC/sHPFC`.
+- [x] Create a runnable list of source files to move for `PFC/stdPFC`.
+- [x] Create a runnable list of source files to move for `PFC/sHPFC`.
+- [x] Add narrow import-contract tests: `tests/test_pfc_entrypoints_model_contract.py` (verifies `PFC.stdPFC.make_sim` and `PFC.sHPFC.make_sim`) — ran locally (2 passed).
 - [ ] Move the listed source files into `PFC/stdPFC` (perform after confirmation).
 - [ ] Move the listed source files into `PFC/sHPFC` (perform after confirmation).
 - [ ] Verify no design/spec markdown needs editing for this step.
