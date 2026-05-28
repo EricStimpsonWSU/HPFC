@@ -1,7 +1,7 @@
 # Step 1 - Core Split
 
 Purpose
-- Move the shared implementation into PFC/Core while keeping runtime behavior and numerical outputs unchanged. This step only defines the shared/core boundary and a minimal, file-level migration plan — no code moves or implementation are performed here.
+- Move the shared implementation into `PFC/Core` while keeping the current runtime behavior intact.
 
 Checklist (file-level classification)
 - [x] Core (should be moved to `PFC/Core`):
@@ -35,9 +35,7 @@ Constraints
 - Keep changes minimal and local; plan-only at this stage.
 
 Exit criteria (explicit)
-- [x] The shared-core boundary is recorded in this todo with a concrete per-file classification.
-- [x] A follow-up Step 2 plan is ready: a narrow import-contract test suite that references the files above and verifies importability from both `PFC/Core` and the model packages.
-- [x] A clear list of files to move during implementation is present and unambiguous.
+- Shared infrastructure imports from `PFC/Core` and tests still pass.
 
 Status
 - Completed on 2026-05-28 after landing the `PFC.Core` package boundary and keeping the deterministic baseline suite green.
