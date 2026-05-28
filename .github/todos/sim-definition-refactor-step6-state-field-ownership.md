@@ -2,7 +2,7 @@
 
 Purpose: keep `SimulationState` responsible for owned buffers and shared helpers while moving any remaining variant-specific field assumptions into the sim modules.
 
-Status: in progress.
+Status: completed.
 
 Boundary
 - `SimulationState` keeps ownership of preallocated buffers, shared batch wrappers, `psi_hat_00`, and the lazy hydrodynamic storage that backs the shared hydro fields.
@@ -14,8 +14,8 @@ Checklist
 - [x] Add narrow contract tests that prove `SimulationState` still owns the shared buffers and that the batch views alias the same arrays.
 - [x] Add narrow contract tests that verify the standard module hides hydrodynamic names while the hydrodynamic sim modules expose only the names they need.
 - [x] Add a focused test that checks the named hydro views still share backing storage when they are allocated.
-- [ ] Move or trim any remaining variant-specific field exposure logic out of `HPFC/state.py` only if the new tests show it is still coupled there.
-- [ ] Keep the change local to the state/sim boundary; do not touch design/spec docs or unrelated kernel/model code.
+- [x] Move or trim any remaining variant-specific field exposure logic out of `HPFC/state.py` only if the new tests show it is still coupled there.
+- [x] Keep the change local to the state/sim boundary; do not touch design/spec docs or unrelated kernel/model code.
 
 Exit criteria
 - `SimulationState` still owns the common buffers, lazy allocation helpers, and identity-preserving named views.
@@ -24,7 +24,7 @@ Exit criteria
 - The narrow Step 6 tests pass without changing the committed baseline behavior.
 
 Next action
-- Review `HPFC/state.py` against the new contract tests and make the smallest state/sim boundary adjustment only if the implementation still overreaches the state ownership boundary.
+- Step 6 is complete; proceed to the Step 7 cleanup and migration-note work when ready.
 
 Notes
 - Treat `.github/refactors/pfc-sim-definition-refactor-plan.md` as the source of truth for the split.
