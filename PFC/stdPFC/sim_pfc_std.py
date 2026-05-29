@@ -11,7 +11,6 @@ from PFC.Core.kernel_rules import KernelRules
 from PFC.Core._simulation_facade import VariantSimulationFacade
 from PFC.Core.payload import BackendPayloadManager
 from PFC.Core.state import SimulationState
-from PFC.Core.steppers import SHPFCTimestepper, StdPFCTimestepper
 BLOCKED_NAMES = {
     "Timestep_sHPFC",
     "Timestep_sHPFC_div_vpsi",
@@ -92,8 +91,6 @@ def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> Var
             self.state = state
             self.model = state.model
             self.geometry = state.geometry
-            self.std_stepper = StdPFCTimestepper(self.state)
-            self.shpfc_stepper = SHPFCTimestepper(self.state)
             backend_info = self.state._payload_mgr.backend
             self.backend_name = backend_info.name
             self.backend_fft_name = backend_info.fft_name

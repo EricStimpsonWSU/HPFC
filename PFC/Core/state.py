@@ -187,20 +187,6 @@ class SimulationState:
 		self._ensure_vel_alloc()
 		return self._div_vpsi_hat
 
-	def calc_mu(self, *, psi_hat_is_current: bool = False) -> None:
-		if not psi_hat_is_current:
-			self.calc_poly_psi()
-		self.lin_mu_hat[...] = self.kernel_lin_mu * self.psi_batch.psi_hat
-		self.lin_mu[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.lin_mu_hat))
-		self.mu[...] = self.lin_mu + self.psi3
-
-	def calc_f(self, *, psi_hat_is_current: bool = False) -> None:
-		if not psi_hat_is_current:
-			self.calc_poly_psi()
-		self.lin_f_hat[...] = self.kernel_lin_f * self.psi_batch.psi_hat
-		self.lin_f[...] = self._payload_mgr.real(self._payload_mgr.ifftn(self.lin_f_hat))
-		self.f[...] = self.lin_f * self.psi + 0.5 * (self.model.beta + self.model.temp) * self.psi2 + 0.25 * self.psi4
-
 	def calc_StructureTensor(self, *, psi_xy_is_current: bool = False) -> None:
 		if not psi_xy_is_current:
 			self.calc_poly_psi()

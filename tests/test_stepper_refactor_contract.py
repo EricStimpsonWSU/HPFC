@@ -44,9 +44,7 @@ def test_shpfc_div_vpsi_common_hydro_fields_present():
 
 
 def test_core_steppers_no_stepper_classes():
-    src = _read("PFC/Core/steppers.py")
-    assert "class StdPFCTimestepper" not in src, "StdPFCTimestepper should be moved out of Core/steppers.py"
-    assert "class SHPFCTimestepper" not in src, "SHPFCTimestepper should be moved out of Core/steppers.py"
+    assert not (ROOT / "PFC/Core/steppers.py").exists(), "PFC/Core/steppers.py should be deleted"
 
 
 def test_core_state_no_calc_mu_calc_f():

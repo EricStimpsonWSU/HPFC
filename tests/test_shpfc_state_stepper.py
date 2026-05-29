@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from PFC.Core.state import SimulationState
-from PFC.Core.steppers import SHPFCTimestepper, StdPFCTimestepper
 
 
 def test_state_wrapper_and_std_stepper_delegate_to_simulation(simple_model, simple_geometry, psi0, force_numpy_backend):
@@ -15,25 +14,22 @@ def test_state_wrapper_and_std_stepper_delegate_to_simulation(simple_model, simp
     assert state.psi.shape == psi0.shape
     assert state.kernel_d_dx.shape == psi0.shape
 
-    stepper = StdPFCTimestepper(state)
-    t0 = state.t
+    t0 = sim.t
+    sim.std_step()
 
-    stepper.step()
-
-    assert state.t == pytest.approx(t0 + state.model.dt)
+    assert sim.t == pytest.approx(t0 + sim.model.dt)
 
 
 def test_hydro_stepper_variants_advance_time(simple_model, simple_geometry, psi0, force_numpy_backend):
-    from PFC.sHPFC.sim_shpfc_std import make_sim as make_shpfc_sim
+    from PFC.sHPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
+    from PFC.sHPFC.sim_shpfc_psigradmu import make_sim as make_psigradmu_sim
 
-    sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
-    state = SimulationState(sim._payload_mgr, sim.model, sim.geometry, sim.kernels, psi0)
-    stepper = SHPFCTimestepper(state)
+    div_sim = make_div_sim(psi0, model=simple_model, geometry=simple_geometry)
+    t0 = div_sim.t
+    div_sim.step()
+    assert div_sim.t == pytest.approx(t0 + div_sim.model.dt)
 
-    t0 = state.t
-    stepper.step_div_vpsi()
-    assert state.t == pytest.approx(t0 + state.model.dt)
-
-    t1 = state.t
-    stepper.step_psigradmu()
-    assert state.t == pytest.approx(t1 + state.model.dt)
+    gradmu_sim = make_psigradmu_sim(psi0, model=simple_model, geometry=simple_geometry)
+    t1 = gradmu_sim.t
+    gradmu_sim.step()
+    assert gradmu_sim.t == pytest.approx(t1 + gradmu_sim.model.dt)

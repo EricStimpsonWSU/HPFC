@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from . import PFC2D_geometry, PFC2D_model, _simulation_facade, backend, fft_utils, fields, kernel_rules, payload, state, steppers
+from . import PFC2D_geometry, PFC2D_model, _simulation_facade, backend, fft_utils, fields, kernel_rules, payload, state
 from .backend import (
 	ARRAY_BACKEND_ENV,
 	FFT_BACKEND_ENV,
@@ -20,8 +20,6 @@ from .payload import BackendPayloadManager
 from .kernel_rules import KernelRules, _cell_volume, _normalize_kernel_hat_mean, _to_spacing_tuple, gaussian_kernel_fft
 from .state import SimulationState
 from ._simulation_facade import VariantSimulationFacade
-from .steppers import SHPFCTimestepper, StdPFCTimestepper
-
 __all__ = [
 	"backend",
 	"fft_utils",
@@ -32,7 +30,6 @@ __all__ = [
 	"PFC2D_geometry",
 	"PFC2D_model",
 	"_simulation_facade",
-	"steppers",
 	"ArrayBackend",
 	"BackendName",
 	"FFTBackendName",
@@ -69,7 +66,5 @@ __all__ = [
 	"gaussian_kernel_fft",
 	"SimulationState",
 	"VariantSimulationFacade",
-	"StdPFCTimestepper",
-	"SHPFCTimestepper",
 ]
 
