@@ -313,3 +313,9 @@ Do not modify physics.
 
 ### Exit criteria
 Codebase is clean, consistent, and self‑contained.
+
+---
+
+Refactor status: **complete**
+
+The timestepper logic now lives in the variant sim files, `PFC.Core.steppers` has been removed, and the contract/deterministic test suites pass.

@@ -35,7 +35,6 @@ BLOCKED_NAMES = {
     "mu_y_hat",
     "grad_mu_batch",
 }
-import numpy as _np
 
 
 LOGGER = logging.getLogger(__name__)
