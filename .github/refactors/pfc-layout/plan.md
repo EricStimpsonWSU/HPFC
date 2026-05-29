@@ -15,6 +15,14 @@ Step order
 5. Move model documentation into the matching model folders.
 6. Clean up compatibility and update consumers.
 
+Notes on what was completed in this refactor (delta from original plan):
+- Verified and updated `PFC/Core/__init__.py` to expose the canonical `kernel_rules` API (replacing the legacy `kernels` shim).
+- Deleted the legacy compatibility shim `PFC/Core/PFC2D_kernels.py` and updated internal imports/tests to use `PFC.Core.kernel_rules`.
+- Removed the `model.hydro` parameter-view aliases from simulation `build_model()` helpers and migrated callers/tests to use top-level hydrodynamic attributes (e.g., `model.rho0`, `model.Gamma_s`).
+
+Validation:
+- Focused kernel tests, import-contract checks, baseline checks, and the full pytest suite were executed in the project virtualenv; all tests passed (165/165).
+
 Exit criteria
 - The new `PFC` layout is the canonical import surface.
 - The standard and hydrodynamic model modules live under their model folders.
