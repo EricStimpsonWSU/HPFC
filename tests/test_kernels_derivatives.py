@@ -8,7 +8,7 @@ import pytest
 
 from PFC.Core.PFC2D_geometry import geometry_2D
 from PFC.Core.PFC2D_model import model_2D
-from PFC.Core.PFC2D_kernels import kernels
+from PFC.Core.kernel_rules import KernelRules as kernels
 from tests.helpers import assert_allclose
 
 

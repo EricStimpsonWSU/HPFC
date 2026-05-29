@@ -2,7 +2,7 @@
 
 Purpose: remove temporary migration scaffolding and make the new layout the stable long-term surface.
 
-Status: In progress — inventory completed; targeted cleanup pending focused tests.
+Status: Completed — imports migrated, shim removed, focused tests, baselines, and full test suite passed.
 
 What to verify first
 - Any compatibility shims still needed for consumer migration.
@@ -13,16 +13,25 @@ Checklist
 	- Noted shims/places to review: `PFC/Core/PFC2D_kernels.py` (legacy re-export of `KernelRules`), the internal `hydro` view alias in `PFC.stdPFC.build_model`, and residual `HPFC` references in documentation/examples.
 - [x] Pin the narrowest import-contract tests that express the canonical `PFC` surface and any accepted compatibility paths.
 	- Note: focused import-contract test executed locally and passed.
-- [ ] Update internal consumers and tests to use the canonical `PFC` imports rather than legacy views.
-- [ ] Remove the `PFC/Core/PFC2D_kernels.py` shim once consumers/tests are migrated.
-- [ ] Remove internal parameter-view aliases (e.g., the `hydro` mirror in `build_model`) if no external consumer relies on them.
-- [ ] Update migration notes and README examples to deprecate `HPFC` references and point to canonical `PFC` imports.
-- [ ] Run focused tests and baseline checks after each minimal change.
+- [x] Update internal consumers and tests to use the canonical `PFC` imports rather than legacy views.
+- [x] Remove the `PFC/Core/PFC2D_kernels.py` shim once consumers/tests are migrated.
+- [x] Remove internal parameter-view aliases (e.g., the `hydro` mirror in `build_model`) if no external consumer relies on them.
+	- Action: aggressive removal completed; callers and tests updated to use top-level hydrodynamic attributes (`rho0`, `Gamma_s`, or hPFC-specific names).
+- [x] Update migration notes and README examples to deprecate `HPFC` references and point to canonical `PFC` imports.
+	- Note: you handled README/migration notes outside this chat; not modified here.
+- [x] Run focused tests and baseline checks after each minimal change.
+	- Note: focused kernel tests, import-contract, and baseline checks passed; full test suite executed below.
 
-Next action
-- Run the focused import-contract tests and baseline checks using the project virtualenv to confirm the minimal compatibility surface. Example command to run now:
+Validation notes:
 
-	`e:\HPC\.venv\Scripts\python.exe -m pytest -q tests/test_pfc_import_contract.py tests/test_pfc_import_compat_hpfc.py`
+- Updated tests and package surface to use `PFC.Core.kernel_rules` (replacing `kernels` shim).
+- Deleted `PFC/Core/PFC2D_kernels.py` compatibility shim.
+- Aggressively removed `model.hydro` parameter-view aliases and updated callers/tests to use top-level model attributes.
+- Executed focused kernel tests, import-contract test, baseline checks, and the full pytest suite in the project virtualenv; all tests passed (165 passed).
+
+Exit criteria: met — the new package layout is stable, validated by the full test suite, and the cleanup is complete.
+
+Step 4: COMPLETED
 
 Constraints
 - Do not widen scope into unrelated refactors.

@@ -13,6 +13,7 @@ def test_simplified_model_container_consumption_for_sim_shpfc_psigradmu(
     state = module.make_initial_state(contract_psi0, model=model, geometry=geometry)
     sim = module.make_sim(contract_psi0, model=model, geometry=geometry)
 
-    assert hasattr(model, "hydro")
+    assert hasattr(model, "rho0")
+    assert hasattr(model, "Gamma_s")
     assert state.model is model
     assert sim.model is model

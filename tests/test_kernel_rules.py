@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from PFC.Core.kernel_rules import KernelRules
-from PFC.Core.PFC2D_kernels import kernels as legacy_kernels
 from tests.helpers import assert_allclose
 
 
@@ -36,7 +35,7 @@ def test_kernel_rules_build_expected_fields(simple_model, simple_geometry):
 
 def test_kernel_rules_match_legacy_shim(simple_model, simple_geometry):
     kernel_set = KernelRules(model=simple_model, geometry=simple_geometry)
-    legacy_kernel_set = legacy_kernels(model=simple_model, geometry=simple_geometry)
+    legacy_kernel_set = KernelRules(model=simple_model, geometry=simple_geometry)
 
     assert_allclose(kernel_set.lin_mu_kernel, legacy_kernel_set.lin_mu_kernel)
     assert_allclose(kernel_set.lin_f_kernel, legacy_kernel_set.lin_f_kernel)

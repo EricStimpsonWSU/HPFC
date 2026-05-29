@@ -17,7 +17,7 @@ $$
 Final equations [density field $\psi$, dissipation coefficient $\mu_X \rightarrow \Gamma_X$]:
 $$
 \begin{align}
-\partial_t \psi = \Gamma_\rho \nabla^2 \left( \mu + \frac{1}{2} |\mathbf{v}|^2 \right) - \nabla \cdot (\psi \mathbf{v}) \\
+\partial_t \psi = \Gamma_\rho \nabla^2 \left( \mu + \frac{1}{2} \alpha |\mathbf{v}|^2 \right) - \Gamma_J \nabla \cdot (\psi \mathbf{v}) \\
 \rho_0 \partial_t \mathbf{v} = \langle - \psi \nabla \mu \rangle + \Gamma_S \nabla^2 \mathbf{v} - \rho_0 \mathbf{v} (\nabla \cdot \mathbf{v}) \\
 \mu = (\nabla^2 + {q_0}^2)^2 \psi + r \psi + g \psi^2 + v_0 \psi^3
 \end{align}

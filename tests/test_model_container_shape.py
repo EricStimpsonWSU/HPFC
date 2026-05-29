@@ -19,7 +19,8 @@ class SimpleModelContainer:
     beta: float
     Gamma: float
     dt: float
-    hydro: HydroModelConfig
+    rho0: float
+    Gamma_s: float
 
 
 def _build_small_psi0() -> np.ndarray:
@@ -33,17 +34,16 @@ def test_minimal_model_container_shape_exposes_shared_and_namespaced_settings() 
         beta=1.5,
         Gamma=1.0,
         dt=0.05,
-        hydro=HydroModelConfig(rho0=1.0, Gamma_s=0.75),
+        rho0=1.0,
+        Gamma_s=0.75,
     )
 
     assert model.temp == -0.25
     assert model.beta == 1.5
     assert model.Gamma == 1.0
     assert model.dt == 0.05
-    assert model.hydro.rho0 == 1.0
-    assert model.hydro.Gamma_s == 0.75
-    assert not hasattr(model, "rho0")
-    assert not hasattr(model, "Gamma_s")
+    assert model.rho0 == 1.0
+    assert model.Gamma_s == 0.75
 
 
 @pytest.mark.parametrize("module_path", ("PFC.stdPFC.sim_pfc_std", "PFC.sHPFC.sim_shpfc_std"))
@@ -54,7 +54,8 @@ def test_existing_sim_assembly_can_consume_minimal_model_container(module_path: 
         beta=1.5,
         Gamma=1.0,
         dt=0.05,
-        hydro=HydroModelConfig(rho0=1.0, Gamma_s=0.75),
+        rho0=1.0,
+        Gamma_s=0.75,
     )
     geometry = module.build_geometry(shape=(4, 4), Lx=8.0, Ly=8.0)
     psi0 = _build_small_psi0()

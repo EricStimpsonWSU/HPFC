@@ -13,8 +13,9 @@ def test_simplified_model_container_consumption(
     state = module.make_initial_state(contract_psi0, model=model, geometry=geometry)
     sim = module.make_sim(contract_psi0, model=model, geometry=geometry)
 
-    # The simplified model container must expose a `hydro` attribute
-    assert hasattr(model, "hydro")
+    # The simplified model container must expose hydrodynamic params as top-level attributes
+    assert hasattr(model, "rho0")
+    assert hasattr(model, "Gamma_s")
 
     # Consumer assembly should use the exact same model object
     assert state.model is model

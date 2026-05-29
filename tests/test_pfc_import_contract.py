@@ -17,7 +17,6 @@ PACKAGE_SURFACES = {
         "PFC2D_model",
         "geometry_2D",
         "model_2D",
-        "kernels",
         "gaussian_kernel_fft",
         "resolve_model_parameter",
     ),
