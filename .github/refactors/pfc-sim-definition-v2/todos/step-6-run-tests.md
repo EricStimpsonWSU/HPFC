@@ -6,7 +6,7 @@ Status: not-started
 
 Checklist:
 - [ ] Run narrow deterministic tests (small grid, few steps) for each variant.
-- [ ] Run the import-contract tests and any architecture tests added in Step 2.
+- [ ] Run the Core-ownership tests and any architecture tests added in Step 2.
 - [ ] Run baseline checks for canonical outputs where available.
 - [ ] Run the full test suite and ensure all tests pass.
 

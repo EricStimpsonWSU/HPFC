@@ -29,7 +29,6 @@ Mapping (steppers (mutating), state (non-mutating) → sim files)
   - `PFC/sHPFC/sim_shpfc_std.py`
   - `PFC/sHPFC/sim_shpfc_div_vpsi.py`
   - `PFC/sHPFC/sim_shpfc_psigradmu.py`
-  - `PFC/HPFC/sim_hpfc_std.py`
 
 - `PFC/Core/steppers.py: SHPFCTimestepper._calc_common_hydro_fields` -->
   - `PFC/sHPFC/sim_shpfc_std.py`
@@ -52,20 +51,17 @@ Mapping (steppers (mutating), state (non-mutating) → sim files)
   - `PFC/sHPFC/sim_shpfc_std.py`
   - `PFC/sHPFC/sim_shpfc_div_vpsi.py`
   - `PFC/sHPFC/sim_shpfc_psigradmu.py`
-  - `PFC/HPFC/sim_hpfc_std.py`
 
 - `PFC/Core/state.py: SimultationState.calc_f`
   - `PFC/stdPFC/sim_pfc_std.py`
   - `PFC/sHPFC/sim_shpfc_std.py`
   - `PFC/sHPFC/sim_shpfc_div_vpsi.py`
   - `PFC/sHPFC/sim_shpfc_psigradmu.py`
-  - `PFC/HPFC/sim_hpfc_std.py`
 
 Notes:
 - `calc_poly_psi` stays Core-owned for now because it is cross-cutting and may remain shared.
 - `calc_mu` and `calc_f` are currently routed through `SimulationState`, but the target refactor should move each one into the local `sim_[model]_[variant].py` file that owns the behavior.
 - `calc_poly_psi` is owned by Core; `calc_mu` and `calc_f` are owned by the sim files.
 - Duplication is intentional: these sim files are meant to be self-contained and independently verifiable.
-- Current `PFC/HPFC/sim_hpfc_std.py` wiring still reuses `SHPFCTimestepper.step`, but that is current wiring, not target ownership.
 
 Exit criteria (for Step 1): mapping is ready for review, extracted reference copies exist, and the checklist reflects the extraction inventory.

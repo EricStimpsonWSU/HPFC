@@ -1,6 +1,6 @@
 # `plan.md` — Refactor: PFC Simulation Definition Surfaces  
 ### Refactor Name: `pfc-sim-definition`  
-### Goal: Move all timestepper logic into each `sim_<model>_<variant>.py` file and remove `PFC.Core.steppers`  
+### Goal: Move all std PFC and sHPFC timestepper logic into the relevant `sim_<model>_<variant>.py` files and remove `PFC.Core.steppers`  
 ### Refactor Philosophy: **Break First, Fix Later**  
 ### Shared Base Classes: **None** (no StepperBase)
 
@@ -8,7 +8,7 @@
 
 # 1. Purpose of This Refactor
 
-The current architecture incorrectly places timesteppers inside `PFC.Core.steppers`, even though timesteppers are **model‑specific** and **variant‑specific**. This refactor restructures the code so that:
+The current architecture incorrectly places timesteppers inside `PFC.Core.steppers`, even though timesteppers are **model‑specific** and **variant‑specific**. This refactor restructures the code so that the std PFC and sHPFC surfaces own their own timestepper logic:
 
 - Each variant sim file contains **its own timestepper**
 - The Core becomes **fully model‑agnostic**
@@ -25,8 +25,8 @@ This is intentional.
 
 ### In Scope
 - Removing `PFC.Core.steppers`
-- Moving timestepper logic into each variant’s sim file
-- Updating variant sim files to use their local timesteppers
+- Moving timestepper logic for std PFC and sHPFC into each variant’s sim file
+- Updating std PFC and sHPFC sim files to use their local timesteppers
 - Allowing tests to break until the refactor is complete
 - Writing new tests that fail until the architecture is correct
 
@@ -59,12 +59,12 @@ This is intentional.
 
 1. Create the refactor folder and plan.
 2. Extract all timestepper logic from `PFC.Core.steppers`.
-3. Write failing tests that assert timesteppers live inside sim files.
-4. Move timesteppers into each variant sim file.
+3. Write failing tests that assert timesteppers live inside the std PFC and sHPFC sim files.
+4. Move timesteppers into each std PFC and sHPFC variant sim file.
 5. Update sim files to instantiate local timesteppers.
 6. Delete `PFC.Core.steppers` (this will break everything).
 7. Fix imports and wiring until tests pass.
-8. Run deterministic small‑grid tests to confirm behavior is unchanged.
+8. Run deterministic small‑grid tests for std PFC and sHPFC to confirm behavior is unchanged.
 9. Clean up dead code and unused imports.
 
 This plan intentionally breaks the codebase mid‑refactor.  
@@ -80,7 +80,7 @@ This refactor is complete when:
 - Each variant sim file contains its own timestepper class
 - All tests pass after the final fix‑phase
 - The Core contains **no model‑specific logic**
-- The variant sim files are fully self‑contained
+- The std PFC and sHPFC variant sim files are fully self‑contained
 - The facade still blocks/exposes the correct names
 - Deterministic small‑grid behavior matches pre‑refactor results
 
