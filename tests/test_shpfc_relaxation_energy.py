@@ -55,15 +55,30 @@ def _build_model(*, dt: float = 0.1) -> model_2D:
     )
 
 
-def _phase_energies(sim: sHPFC, stepper_name: str, *, frames: int = 3, sample_every: int = 10) -> list[float]:
+def _make_variant_sim(variant: str, psi0: np.ndarray, *, model, geometry):
+    if variant == "stdPFC":
+        from PFC.stdPFC.sim_pfc_std import make_sim as make_std_sim
+
+        return make_std_sim(psi0=psi0, model=model, geometry=geometry)
+    if variant == "sHPFC":
+        return make_shpfc_sim(psi0=psi0, model=model, geometry=geometry)
+    if variant == "sHPFC_div_vpsi":
+        from PFC.sHPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
+
+        return make_div_sim(psi0=psi0, model=model, geometry=geometry)
+    from PFC.sHPFC.sim_shpfc_psigradmu import make_sim as make_psigradmu_sim
+
+    return make_psigradmu_sim(psi0=psi0, model=model, geometry=geometry)
+
+
+def _phase_energies(sim, *, frames: int = 3, sample_every: int = 10) -> list[float]:
     energies: list[float] = []
     sim.calc_f()
     energies.append(float(np.mean(sim._payload_mgr.to_numpy(sim.f))))
 
-    stepper = getattr(sim, stepper_name)
     for _ in range(frames):
         for _ in range(sample_every):
-            stepper()
+            sim.step()
         sim.calc_f()
         energies.append(float(np.mean(sim._payload_mgr.to_numpy(sim.f))))
 
@@ -83,36 +98,23 @@ def _assert_nonincreasing(values: list[float], *, atol: float = 5e-8, rtol: floa
 
 
 @pytest.mark.parametrize(
-    "stepper_name",
+    "variant",
     [
-        "Timestep_stdPFC",
-        "Timestep_sHPFC",
-        "Timestep_sHPFC_div_vpsi",
-        "Timestep_sHPFC_psigradmu",
+        "stdPFC",
+        "sHPFC",
+        "sHPFC_div_vpsi",
+        "sHPFC_psigradmu",
     ],
 )
-def test_relaxation_energy_monotone_two_phase_for_timestep_variants(stepper_name: str, force_numpy_backend):
+def test_relaxation_energy_monotone_two_phase_for_variants(variant: str, force_numpy_backend):
     psi, X, Y, Lx, Ly, Nx, Ny, psi_mean, q_vecs = _build_notebook_like_crystal_field(Mx=8, My=5, target_dx=0.5)
 
     model = _build_model(dt=0.1)
     geometry = geometry_2D((Nx, Ny), Lx, Ly)
-    if stepper_name == "Timestep_stdPFC":
-        from PFC.stdPFC.sim_pfc_std import make_sim as make_std_sim
-
-        sim = make_std_sim(psi0=psi, model=model, geometry=geometry)
-    elif stepper_name == "Timestep_sHPFC":
-        sim = make_shpfc_sim(psi0=psi, model=model, geometry=geometry)
-    elif stepper_name == "Timestep_sHPFC_div_vpsi":
-        from PFC.sHPFC.sim_shpfc_div_vpsi import make_sim as make_div_sim
-
-        sim = make_div_sim(psi0=psi, model=model, geometry=geometry)
-    else:
-        from PFC.sHPFC.sim_shpfc_psigradmu import make_sim as make_psigradmu_sim
-
-        sim = make_psigradmu_sim(psi0=psi, model=model, geometry=geometry)
+    sim = _make_variant_sim(variant, psi, model=model, geometry=geometry)
 
     # Pass 1: compact refinement pass (30 total steps sampled every 10)
-    energies_phase1 = _phase_energies(sim, stepper_name, frames=3, sample_every=10)
+    energies_phase1 = _phase_energies(sim, frames=3, sample_every=10)
     _assert_nonincreasing(energies_phase1)
 
     # Approximate notebook-style amplitude refinement
@@ -131,13 +133,6 @@ def test_relaxation_energy_monotone_two_phase_for_timestep_variants(stepper_name
     ).real
 
     # Pass 2: compact stable-amplitude pass (30 total steps sampled every 10)
-    if stepper_name == "Timestep_stdPFC":
-        sim2 = make_std_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
-    elif stepper_name == "Timestep_sHPFC":
-        sim2 = make_shpfc_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
-    elif stepper_name == "Timestep_sHPFC_div_vpsi":
-        sim2 = make_div_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
-    else:
-        sim2 = make_psigradmu_sim(psi0=psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
-    energies_phase2 = _phase_energies(sim2, stepper_name, frames=3, sample_every=10)
+    sim2 = _make_variant_sim(variant, psi_refined, model=_build_model(dt=0.1), geometry=geometry_2D((Nx, Ny), Lx, Ly))
+    energies_phase2 = _phase_energies(sim2, frames=3, sample_every=10)
     _assert_nonincreasing(energies_phase2)

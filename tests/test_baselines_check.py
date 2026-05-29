@@ -41,9 +41,8 @@ def test_baseline_files_match_current_behavior(variant: str, steps: int, backend
     assert baseline_path.exists(), f"missing baseline file: {baseline_path}"
 
     simulation = build_simulation(variant, backend_mode=backend_target)
-    timestep_method = getattr(simulation, VARIANT_METHODS[variant])
     for _ in range(steps):
-        timestep_method()
+        simulation.step()
 
     actual = collect_snapshot(simulation, variant, steps)
     expected = load_snapshot(baseline_path)

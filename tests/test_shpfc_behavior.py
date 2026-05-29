@@ -58,14 +58,14 @@ def test_calc_StructureTensor_returns_smoothed_components(simple_model, simple_g
     assert sim.S_xy.shape == simple_geometry.shape
 
 
-def test_Timestep_stdPFC_advances_time_and_updates_psi(simple_model, simple_geometry, psi0, force_numpy_backend):
+def test_step_advances_time_and_updates_psi(simple_model, simple_geometry, psi0, force_numpy_backend):
     from PFC.stdPFC.sim_pfc_std import make_sim as make_std_sim
 
     sim = make_std_sim(psi0, model=simple_model, geometry=simple_geometry)
 
     t0 = sim.t
     psi_before = sim._payload_mgr.to_numpy(sim.psi).copy()
-    sim.Timestep_stdPFC()
+    sim.step()
     assert sim.t == pytest.approx(t0 + sim.model.dt)
     psi_after = sim._payload_mgr.to_numpy(sim.psi)
     assert psi_after.shape == psi_before.shape

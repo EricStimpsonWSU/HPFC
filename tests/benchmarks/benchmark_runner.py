@@ -56,13 +56,13 @@ def run_single_benchmark(seed: int, nx: int, ny: int, warmup: int, steps: int, r
 
     # warmup
     for _ in range(warmup):
-        sim.Timestep_stdPFC()
+        sim.step()
 
     times = []
     for r in range(repeats):
         t0 = time.perf_counter()
         for _ in range(steps):
-            sim.Timestep_stdPFC()
+            sim.step()
         t1 = time.perf_counter()
         times.append((t1 - t0) / steps)
 

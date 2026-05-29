@@ -8,17 +8,17 @@ import pytest
 
 
 VARIANT_SPECS = (
-    ("PFC.stdPFC.sim_pfc_std", "Timestep_stdPFC", ()),
-    ("PFC.sHPFC.sim_shpfc_std", "Timestep_sHPFC", ("v_x", "v_y")),
-    ("PFC.sHPFC.sim_shpfc_div_vpsi", "Timestep_sHPFC_div_vpsi", ("v_x", "v_y", "div_vpsi_hat")),
-    ("PFC.sHPFC.sim_shpfc_psigradmu", "Timestep_sHPFC_psigradmu", ("v_x", "v_y", "v_dot_grad_psi_hat")),
+    ("PFC.stdPFC.sim_pfc_std", ("step",), ()),
+    ("PFC.sHPFC.sim_shpfc_std", ("step", "std_step"), ("v_x", "v_y")),
+    ("PFC.sHPFC.sim_shpfc_div_vpsi", ("step", "std_step"), ("v_x", "v_y", "div_vpsi_hat")),
+    ("PFC.sHPFC.sim_shpfc_psigradmu", ("step", "std_step"), ("v_x", "v_y", "v_dot_grad_psi_hat")),
 )
 
 
-@pytest.mark.parametrize("module_path,step_method,expected_fields", VARIANT_SPECS)
+@pytest.mark.parametrize("module_path,public_methods,expected_fields", VARIANT_SPECS)
 def test_canonical_sim_module_import_paths(
     module_path: str,
-    step_method: str,
+    public_methods: tuple[str, ...],
     expected_fields: tuple[str, ...],
 ) -> None:
     module = importlib.import_module(module_path)
@@ -31,10 +31,10 @@ def test_canonical_sim_module_import_paths(
     assert hasattr(module, "build_lin_kernels")
 
 
-@pytest.mark.parametrize("module_path,step_method,expected_fields", VARIANT_SPECS)
+@pytest.mark.parametrize("module_path,public_methods,expected_fields", VARIANT_SPECS)
 def test_consumer_assembly_contract_for_canonical_variants(
     module_path: str,
-    step_method: str,
+    public_methods: tuple[str, ...],
     expected_fields: tuple[str, ...],
     contract_model_kwargs,
     contract_geometry_kwargs,
@@ -61,8 +61,9 @@ def test_consumer_assembly_contract_for_canonical_variants(
     assert sim.backend_fft_name in {"numpy", "pyfftw", "cupy"}
     assert "arrays=" in sim.backend_summary
     assert "fft=" in sim.backend_summary
-    assert hasattr(sim, step_method)
-    assert callable(getattr(sim, step_method))
+    for method_name in public_methods:
+        assert hasattr(sim, method_name)
+        assert callable(getattr(sim, method_name))
 
     for field_name in getattr(module, "BLOCKED_NAMES", ()):
         assert not hasattr(sim, field_name)
@@ -70,7 +71,7 @@ def test_consumer_assembly_contract_for_canonical_variants(
     for field_name in expected_fields:
         assert hasattr(sim, field_name)
 
-    getattr(sim, step_method)()
+    sim.step()
 
     assert sim.t == pytest.approx(contract_model_kwargs["dt"])
     assert sim.psi.shape == contract_psi0.shape
@@ -83,10 +84,10 @@ def test_consumer_assembly_contract_for_canonical_variants(
         assert field_value.shape == contract_psi0.shape
 
 
-@pytest.mark.parametrize("module_path,step_method,expected_fields", VARIANT_SPECS)
+@pytest.mark.parametrize("module_path,public_methods,expected_fields", VARIANT_SPECS)
 def test_canonical_sim_modules_do_not_import_legacy_sHPFC(
     module_path: str,
-    step_method: str,
+    public_methods: tuple[str, ...],
     expected_fields: tuple[str, ...],
 ) -> None:
     original_module = sys.modules.pop(module_path, None)

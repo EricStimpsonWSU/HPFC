@@ -84,16 +84,60 @@ def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> Var
         def __getattr__(self, name: str):
             return getattr(self.state, name)
 
-        def Timestep_stdPFC(self) -> None:
-            self.std_stepper.step()
+        def _calc_common_hydro_fields(self) -> None:
+            state = self.state
+            state.calc_poly_psi()
+            self.calc_mu(psi_hat_is_current=True)
+            self.calc_f(psi_hat_is_current=True)
 
-        def Timestep_sHPFC(self) -> None:
-            self.shpfc_stepper.step()
+            state.f_hat[...] = state._payload_mgr.fftn(state.f)
+            state.grad_batch.psi_x_hat[...] = state.kernel_d_dx * state.psi_batch.psi_hat
+            state.grad_batch.psi_y_hat[...] = state.kernel_d_dy * state.psi_batch.psi_hat
+            state.grad_batch.f_x_hat[...] = state.kernel_d_dx * state.f_hat
+            state.grad_batch.f_y_hat[...] = state.kernel_d_dy * state.f_hat
+            state.grad_batch.grad[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.grad_batch.grad_hat, axes=(-2, -1)))
+            state.force_batch.force_x[...] = state.mu * state.grad_batch.psi_x - state.grad_batch.f_x
+            state.force_batch.force_y[...] = state.mu * state.grad_batch.psi_y - state.grad_batch.f_y
+            state.force_batch.force_hat[...] = state._payload_mgr.fftn(state.force_batch.force, axes=(-2, -1))
+            rho0 = resolve_model_parameter(state.model, "rho0")
+            state.vel_batch.v_x_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_x_hat + 1 / rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_x_hat
+            state.vel_batch.v_y_hat[...] = state.kernel_lin_v_exp * state.vel_batch.v_y_hat + 1 / rho0 * state.kernel_nonlin_v_exp * state.kernel_gaussian * state.force_batch.force_y_hat
+            state.vel_batch.vel[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.vel_batch.vel_hat, axes=(-2, -1)))
 
-        def Timestep_sHPFC_div_vpsi(self) -> None:
-            self.shpfc_stepper.step_div_vpsi()
+        def step(self) -> None:
+            state = self.state
+            self._calc_common_hydro_fields()
+            state.div_vpsi_hat[...] = state.kernel_d_dx * state._payload_mgr.fftn(state.vel_batch.v_x * state.psi_batch.psi) + state.kernel_d_dy * state._payload_mgr.fftn(state.vel_batch.v_y * state.psi_batch.psi)
+            state.psi_batch.psi_hat[...] = state.kernel_lin_psi_exp * state.psi_batch.psi_hat + state.kernel_nonlin_psi_exp * (state.model.Gamma * state.kernel_d2_dlap * state.psi_batch.psi3_hat - state.div_vpsi_hat)
+            state.psi_batch.psi_hat[0, 0] = state.psi_hat_00
+            state.psi[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.psi_batch.psi_hat))
+            state.t += state.model.dt
 
-        def Timestep_sHPFC_psigradmu(self) -> None:
-            self.shpfc_stepper.step_psigradmu()
+        def std_step(self) -> None:
+            state = self.state
+            state.psi_batch.psi_hat[...] = state._payload_mgr.fftn(state.psi_batch.psi)
+            state.nonlin_hat[...] = state._payload_mgr.fftn(state.psi_batch.psi**3)
+            state.psi1_hat[...] = (
+                state.kernel_lin_psi_exp * state.psi_batch.psi_hat
+                + state.kernel_d2_dlap * state.kernel_nonlin_psi_exp * state.nonlin_hat
+            )
+            state.psi[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.psi1_hat))
+            state.t += state.model.dt
+
+        def calc_mu(self, *, psi_hat_is_current: bool = False) -> None:
+            state = self.state
+            if not psi_hat_is_current:
+                state.calc_poly_psi()
+            state.lin_mu_hat[...] = state.kernel_lin_mu * state.psi_batch.psi_hat
+            state.lin_mu[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.lin_mu_hat))
+            state.mu[...] = state.lin_mu + state.psi3
+
+        def calc_f(self, *, psi_hat_is_current: bool = False) -> None:
+            state = self.state
+            if not psi_hat_is_current:
+                state.calc_poly_psi()
+            state.lin_f_hat[...] = state.kernel_lin_f * state.psi_batch.psi_hat
+            state.lin_f[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.lin_f_hat))
+            state.f[...] = state.lin_f * state.psi + 0.5 * (state.model.beta + state.model.temp) * state.psi2 + 0.25 * state.psi4
 
     return VariantSimulationFacade(_SimImpl(state), blocked_names=BLOCKED_NAMES)

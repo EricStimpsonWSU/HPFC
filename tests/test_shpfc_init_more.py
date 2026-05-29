@@ -39,11 +39,13 @@ def test_shpfc_methods_exist(simple_model, simple_geometry, psi0, force_numpy_ba
     std_sim = make_std_sim(psi0, model=simple_model, geometry=simple_geometry)
     shpfc_sim = make_shpfc_sim(psi0, model=simple_model, geometry=simple_geometry)
 
-    assert hasattr(std_sim, "Timestep_stdPFC")
-    assert inspect.isroutine(getattr(std_sim, "Timestep_stdPFC"))
+    assert hasattr(std_sim, "step")
+    assert inspect.isroutine(getattr(std_sim, "step"))
 
-    assert hasattr(shpfc_sim, "Timestep_sHPFC")
-    assert inspect.isroutine(getattr(shpfc_sim, "Timestep_sHPFC"))
+    assert hasattr(shpfc_sim, "step")
+    assert inspect.isroutine(getattr(shpfc_sim, "step"))
+    assert hasattr(shpfc_sim, "std_step")
+    assert inspect.isroutine(getattr(shpfc_sim, "std_step"))
 
     # core calculation routines live on the state and should be available
     assert hasattr(std_sim, "calc_mu")

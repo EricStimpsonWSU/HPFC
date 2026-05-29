@@ -10,7 +10,8 @@ def test_stdpfc_entrypoint_exists_and_makes_sim(pfc_contract_namespace, simple_m
     assert callable(PFC_std.make_sim)
 
     sim = PFC_std.make_sim(psi0, model=simple_model, geometry=simple_geometry)
-    assert hasattr(sim, "Timestep_stdPFC")
+    assert hasattr(sim, "step")
+    assert callable(sim.step)
     assert sim.psi.shape == psi0.shape
 
 
@@ -21,5 +22,8 @@ def test_shpfc_entrypoint_exists_and_makes_sim(pfc_contract_namespace, simple_mo
     assert callable(PFC_sh.make_sim)
 
     sim = PFC_sh.make_sim(psi0, model=simple_model, geometry=simple_geometry)
-    assert hasattr(sim, "Timestep_sHPFC")
+    assert hasattr(sim, "step")
+    assert callable(sim.step)
+    assert hasattr(sim, "std_step")
+    assert callable(sim.std_step)
     assert sim.psi.shape == psi0.shape

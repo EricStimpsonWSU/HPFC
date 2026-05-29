@@ -15,22 +15,32 @@ def test_stdpfc_has_step_and_calc_helpers():
     assert "calc_f" in src, "expected `calc_f` helper in sim_pfc_std.py"
 
 
-def test_shpfc_variants_expose_step_and_std_step():
-    paths = [
-        "PFC/sHPFC/sim_shpfc_std.py",
-        "PFC/sHPFC/sim_shpfc_div_vpsi.py",
-        "PFC/sHPFC/sim_shpfc_psigradmu.py",
-    ]
-    for p in paths:
-        src = _read(p)
-        assert "def step(" in src, f"expected `step` in {p}"
-        assert "def std_step(" in src, f"expected `std_step` in {p}"
+def test_shpfc_std_exposes_step_and_std_step():
+    src = _read("PFC/sHPFC/sim_shpfc_std.py")
+    assert "def step(" in src, "expected `step` in PFC/sHPFC/sim_shpfc_std.py"
+    assert "def std_step(" in src, "expected `std_step` in PFC/sHPFC/sim_shpfc_std.py"
 
 
-def test_shpfc_common_hydro_fields_present():
-    for p in ["PFC/sHPFC/sim_shpfc_std.py", "PFC/sHPFC/sim_shpfc_div_vpsi.py"]:
-        src = _read(p)
-        assert "_calc_common_hydro_fields" in src, f"expected `_calc_common_hydro_fields` in {p}"
+def test_shpfc_div_vpsi_exposes_step_and_std_step():
+    src = _read("PFC/sHPFC/sim_shpfc_div_vpsi.py")
+    assert "def step(" in src, "expected `step` in PFC/sHPFC/sim_shpfc_div_vpsi.py"
+    assert "def std_step(" in src, "expected `std_step` in PFC/sHPFC/sim_shpfc_div_vpsi.py"
+
+
+def test_shpfc_psigradmu_exposes_step_and_std_step():
+    src = _read("PFC/sHPFC/sim_shpfc_psigradmu.py")
+    assert "def step(" in src, "expected `step` in PFC/sHPFC/sim_shpfc_psigradmu.py"
+    assert "def std_step(" in src, "expected `std_step` in PFC/sHPFC/sim_shpfc_psigradmu.py"
+
+
+def test_shpfc_std_common_hydro_fields_present():
+    src = _read("PFC/sHPFC/sim_shpfc_std.py")
+    assert "_calc_common_hydro_fields" in src, "expected `_calc_common_hydro_fields` in PFC/sHPFC/sim_shpfc_std.py"
+
+
+def test_shpfc_div_vpsi_common_hydro_fields_present():
+    src = _read("PFC/sHPFC/sim_shpfc_div_vpsi.py")
+    assert "_calc_common_hydro_fields" in src, "expected `_calc_common_hydro_fields` in PFC/sHPFC/sim_shpfc_div_vpsi.py"
 
 
 def test_core_steppers_no_stepper_classes():

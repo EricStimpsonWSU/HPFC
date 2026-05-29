@@ -37,10 +37,10 @@ GEOMETRY_KWARGS = {
 PSI0 = 0.1 * np.arange(16, dtype=np.float64).reshape(4, 4)
 
 VARIANT_METHODS = {
-    "stdPFC": "Timestep_stdPFC",
-    "sHPFC": "Timestep_sHPFC",
-    "sHPFC_div_vpsi": "Timestep_sHPFC_div_vpsi",
-    "sHPFC_psigradmu": "Timestep_sHPFC_psigradmu",
+    "stdPFC": "step",
+    "sHPFC": "step",
+    "sHPFC_div_vpsi": "step",
+    "sHPFC_psigradmu": "step",
 }
 
 STEP_COUNTS = (1, 2, 5)
@@ -86,10 +86,8 @@ def build_simulation(variant: str = "stdPFC", *, backend_mode: str = "cpu"):
 
 def run_variant(variant: str, steps: int, *, backend_mode: str = "cpu") -> sHPFC:
     simulation = build_simulation(variant, backend_mode=backend_mode)
-    timestep_method_name = VARIANT_METHODS[variant]
-    timestep_method = getattr(simulation, timestep_method_name)
     for _ in range(steps):
-        timestep_method()
+        simulation.step()
     return simulation
 
 

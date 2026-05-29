@@ -104,16 +104,31 @@ def make_sim(psi0: np.ndarray, *, model: model_2D, geometry: geometry_2D) -> Var
         def __getattr__(self, name: str):
             return getattr(self.state, name)
 
-        def Timestep_stdPFC(self) -> None:
-            self.std_stepper.step()
+        def step(self) -> None:
+            state = self.state
+            state.psi_batch.psi_hat[...] = state._payload_mgr.fftn(state.psi_batch.psi)
+            state.nonlin_hat[...] = state._payload_mgr.fftn(state.psi_batch.psi**3)
+            state.psi1_hat[...] = (
+                state.kernel_lin_psi_exp * state.psi_batch.psi_hat
+                + state.kernel_d2_dlap * state.kernel_nonlin_psi_exp * state.nonlin_hat
+            )
+            state.psi[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.psi1_hat))
+            state.t += state.model.dt
 
-        def Timestep_sHPFC(self) -> None:
-            self.shpfc_stepper.step()
+        def calc_mu(self, *, psi_hat_is_current: bool = False) -> None:
+            state = self.state
+            if not psi_hat_is_current:
+                state.calc_poly_psi()
+            state.lin_mu_hat[...] = state.kernel_lin_mu * state.psi_batch.psi_hat
+            state.lin_mu[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.lin_mu_hat))
+            state.mu[...] = state.lin_mu + state.psi3
 
-        def Timestep_sHPFC_div_vpsi(self) -> None:
-            self.shpfc_stepper.step_div_vpsi()
-
-        def Timestep_sHPFC_psigradmu(self) -> None:
-            self.shpfc_stepper.step_psigradmu()
+        def calc_f(self, *, psi_hat_is_current: bool = False) -> None:
+            state = self.state
+            if not psi_hat_is_current:
+                state.calc_poly_psi()
+            state.lin_f_hat[...] = state.kernel_lin_f * state.psi_batch.psi_hat
+            state.lin_f[...] = state._payload_mgr.real(state._payload_mgr.ifftn(state.lin_f_hat))
+            state.f[...] = state.lin_f * state.psi + 0.5 * (state.model.beta + state.model.temp) * state.psi2 + 0.25 * state.psi4
 
     return VariantSimulationFacade(_SimImpl(state), blocked_names=BLOCKED_NAMES)
